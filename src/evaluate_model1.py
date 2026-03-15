@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import gc
 import json
 from pathlib import Path
 
@@ -121,6 +122,38 @@ def calibration_plot(table: pd.DataFrame, output_path: Path) -> None:
     plt.close(fig)
 
 
+def predict_probabilities(
+    model,
+    idata,
+    eval_df: pd.DataFrame,
+    *,
+    include_group_specific: bool,
+    sample_new_groups: bool,
+    batch_size: int,
+) -> np.ndarray:
+    n_rows = len(eval_df)
+    probabilities = np.empty(n_rows, dtype=float)
+    predictor_columns = ["correct", "practice_feature", "student_id", "item_id"]
+
+    for start in range(0, n_rows, batch_size):
+        stop = min(start + batch_size, n_rows)
+        chunk = eval_df.iloc[start:stop][predictor_columns]
+        predictions = model.predict(
+            idata,
+            data=chunk,
+            inplace=False,
+            kind="response_params",
+            include_group_specific=include_group_specific,
+            sample_new_groups=sample_new_groups,
+        )
+        probabilities[start:stop] = predictions.posterior["p"].mean(dim=("chain", "draw")).to_numpy()
+        print(f"Predicted rows {start + 1}-{stop} of {n_rows}")
+        del predictions
+        gc.collect()
+
+    return np.clip(probabilities, 1e-6, 1 - 1e-6)
+
+
 def main() -> int:
     args = parse_args()
     config = load_json(args.config)
@@ -131,20 +164,21 @@ def main() -> int:
     eval_df = trials.loc[trials["split"] == config["evaluate_split"]].copy()
     if config.get("primary_eval_only", True):
         eval_df = eval_df.loc[eval_df["primary_eval_eligible"] == 1].copy()
+    eval_df = eval_df.reset_index(drop=True)
 
     model = build_model(train_df)
     idata = az.from_netcdf(Path(config["idata_path"]))
-    predictions = model.predict(
+    batch_size = int(config.get("prediction_batch_size", 1000))
+    if batch_size < 1:
+        raise ValueError("prediction_batch_size must be at least 1.")
+    prob = predict_probabilities(
+        model,
         idata,
-        data=eval_df[["correct", "practice_feature", "student_id", "item_id"]],
-        inplace=False,
-        kind="response_params",
+        eval_df,
         include_group_specific=bool(config.get("include_group_specific", True)),
         sample_new_groups=bool(config.get("sample_new_groups", False)),
+        batch_size=batch_size,
     )
-
-    prob = predictions.posterior["p"].mean(dim=("chain", "draw")).to_numpy()
-    prob = np.clip(prob, 1e-6, 1 - 1e-6)
     eval_df["predicted_probability"] = prob
 
     y_true = eval_df["correct"].to_numpy()
