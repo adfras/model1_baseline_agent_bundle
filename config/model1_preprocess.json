@@ -1,0 +1,10 @@
+{
+  "transactions_path": "data/raw/DBE-KT22/extracted/csv/Transaction.csv",
+  "questions_path": "data/raw/DBE-KT22/extracted/csv/Questions.csv",
+  "processed_trials_path": "data/processed/model1/learner_trials.csv",
+  "split_assignments_path": "data/processed/model1/split_assignments.csv",
+  "summary_path": "data/processed/model1/preprocess_summary.json",
+  "train_fraction": 0.8,
+  "min_history": 10,
+  "exclude_hidden": true
+}

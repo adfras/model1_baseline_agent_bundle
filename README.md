@@ -34,5 +34,39 @@ To inspect the manifest without downloading the files:
 py src/fetch_dbe_kt22.py --manifest-only
 ```
 
+## Preprocess For Model 1
+The current default preprocessing stage follows the audit decisions for DBE-KT22:
+
+- use `Transaction.csv` as the primary attempt table
+- exclude rows with `is_hidden = true`
+- use `answer_state` as the binary outcome
+- order each learner by `start_time` and then transaction `id`
+- require at least `10` visible attempts per learner
+- split each eligible learner `80%` train / `20%` test in time order
+
+Run:
+
+```powershell
+py src/preprocess_model1.py
+```
+
+Default config:
+
+```text
+config/model1_preprocess.json
+```
+
+Default outputs:
+
+```text
+data/processed/model1/learner_trials.csv
+data/processed/model1/split_assignments.csv
+data/processed/model1/preprocess_summary.json
+```
+
+The schema audit that motivated these defaults is recorded in:
+
+- [reports/model1_schema_audit.md](/D:/model1_baseline_agent_bundle/reports/model1_schema_audit.md)
+
 ## Non-Commit Rule
 Downloaded dataset files are local working data and should not be committed. The repository ignore rules exclude the local `data/` tree so the retrieval process is documented, but the actual data stays out of version control.
