@@ -97,6 +97,14 @@ def main() -> int:
     ensure_parent(posterior_summary_path)
     posterior_summary.to_csv(posterior_summary_path)
 
+    diagnostics_path_value = config.get("diagnostics_summary_path")
+    diagnostics_summary = None
+    if diagnostics_path_value is not None:
+        diagnostics_summary = az.summary(idata, kind="diagnostics")
+        diagnostics_summary_path = Path(diagnostics_path_value)
+        ensure_parent(diagnostics_summary_path)
+        diagnostics_summary.to_csv(diagnostics_summary_path)
+
     fit_summary = {
         "formula": str(model.formula),
         "inference_method": inference_method,
@@ -109,6 +117,21 @@ def main() -> int:
         "elapsed_seconds": elapsed_seconds,
         **fit_extra,
     }
+    if diagnostics_path_value is not None:
+        fit_summary["diagnostics_summary_path"] = diagnostics_path_value
+    if inference_method != "vi" and hasattr(idata, "sample_stats"):
+        sample_stats = idata.sample_stats
+        divergences = None
+        if "diverging" in sample_stats:
+            divergences = int(sample_stats["diverging"].sum().item())
+        fit_summary["divergences"] = divergences
+        if diagnostics_summary is not None:
+            if "r_hat" in diagnostics_summary.columns:
+                fit_summary["max_r_hat"] = float(diagnostics_summary["r_hat"].max())
+            if "ess_bulk" in diagnostics_summary.columns:
+                fit_summary["min_ess_bulk"] = float(diagnostics_summary["ess_bulk"].min())
+            if "ess_tail" in diagnostics_summary.columns:
+                fit_summary["min_ess_tail"] = float(diagnostics_summary["ess_tail"].min())
     write_json(Path(config["fit_summary_path"]), fit_summary)
 
     print(f"Saved posterior draws to {idata_path}")

@@ -31,6 +31,7 @@ def write_json(path: Path, payload: dict) -> None:
 
 
 def calibration_intercept_slope(y_true: np.ndarray, prob: np.ndarray) -> tuple[float, float]:
+    prob = np.clip(prob, 1e-6, 1 - 1e-6)
     x = logit(prob)
 
     def objective(params: np.ndarray) -> float:
@@ -39,7 +40,13 @@ def calibration_intercept_slope(y_true: np.ndarray, prob: np.ndarray) -> tuple[f
         pred = np.clip(pred, 1e-9, 1 - 1e-9)
         return -np.sum(y_true * np.log(pred) + (1 - y_true) * np.log(1 - pred))
 
-    result = minimize(objective, x0=np.array([0.0, 1.0]), method="BFGS")
+    def gradient(params: np.ndarray) -> np.ndarray:
+        linear = params[0] + params[1] * x
+        pred = expit(linear)
+        error = pred - y_true
+        return np.array([error.sum(), np.sum(error * x)], dtype=float)
+
+    result = minimize(objective, x0=np.array([0.0, 1.0]), jac=gradient, method="BFGS")
     if not result.success:
         return float("nan"), float("nan")
     return float(result.x[0]), float(result.x[1])

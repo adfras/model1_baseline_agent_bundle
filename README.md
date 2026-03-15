@@ -1,11 +1,43 @@
-# Model 1 Baseline Bundle
+# Learner Forecasting Project Bundle
 
-This repository is for a reproducible **Model 1** baseline on trial-level learner-response data. The current named dataset for this bundle is **DBE-KT22**.
+This repository now follows the two-phase project spec in [AGENTS.md](/D:/model1_baseline_agent_bundle/AGENTS.md) and [PROJECT_PLAN.md](/D:/model1_baseline_agent_bundle/PROJECT_PLAN.md).
+
+The codebase is not a full personalised learning system. It is a small forecasting-and-transfer project:
+
+- Phase 1: fit and compare public-data sequential models
+- Phase 2: carry the chosen public model family into a local warm-start setting
+
+## Current Status
+
+What is implemented today:
+
+- DBE-KT22 public-data retrieval via [fetch_dbe_kt22.py](/D:/model1_baseline_agent_bundle/src/fetch_dbe_kt22.py)
+- DBE-KT22 schema audit via [model1_schema_audit.md](/D:/model1_baseline_agent_bundle/reports/model1_schema_audit.md)
+- Phase 1 Track A preprocessing and deterministic within-learner chronological splits via [preprocess_model1.py](/D:/model1_baseline_agent_bundle/src/preprocess_model1.py)
+- Model 1 fit and evaluation scripts via [fit_model1.py](/D:/model1_baseline_agent_bundle/src/fit_model1.py) and [evaluate_model1.py](/D:/model1_baseline_agent_bundle/src/evaluate_model1.py)
+- multiple Model 1 fitting paths: variational inference, pilot MCMC, fuller MCMC, and a stricter MCMC convergence run
+
+What is specified but not implemented yet:
+
+- Phase 1 Track B unseen-public-student initialization
+- Model 2 random-slope learner-growth model
+- Model 3 dynamic learner-volatility model
+- Phase 2 public-to-local warm-start transfer
+
+A repo-level status note lives at [current_project_status.md](/D:/model1_baseline_agent_bundle/reports/current_project_status.md).
+
+## Project Docs
+
+- [AGENTS.md](/D:/model1_baseline_agent_bundle/AGENTS.md): current project contract and routing rules
+- [PROJECT_PLAN.md](/D:/model1_baseline_agent_bundle/PROJECT_PLAN.md): staged two-phase plan
+- [model1-baseline-binary-logistic](/D:/model1_baseline_agent_bundle/.agents/skills/model1-baseline-binary-logistic/SKILL.md)
+- [model2-random-slope-binary-logistic](/D:/model1_baseline_agent_bundle/.agents/skills/model2-random-slope-binary-logistic/SKILL.md)
+- [model3-dynamic-volatility-binary-logistic](/D:/model1_baseline_agent_bundle/.agents/skills/model3-dynamic-volatility-binary-logistic/SKILL.md)
+- [phase2-transfer-warm-start](/D:/model1_baseline_agent_bundle/.agents/skills/phase2-transfer-warm-start/SKILL.md)
 
 ## Environment
-The repository now includes a Python environment manifest at:
 
-- [pyproject.toml](/D:/model1_baseline_agent_bundle/pyproject.toml)
+The repository includes a Python environment manifest at [pyproject.toml](/D:/model1_baseline_agent_bundle/pyproject.toml).
 
 Target interpreter:
 
@@ -31,15 +63,15 @@ python -m pip install --upgrade pip
 python -m pip install -e .
 ```
 
-The manifest is explicit about the intended modeling stack, but it is not yet a fully validated lockfile. Package installation and fit-stage validation are still the next environment-dependent step.
+## Public Dataset
 
-## Dataset
+Current public development dataset:
+
 - Name: `DBE-KT22`
 - DOI: <https://doi.org/10.26193/6DZWOH>
 - Paper: <https://arxiv.org/abs/2208.12651>
 
-## How To Retrieve The Data
-The repository includes a scripted fetch step that handles the ADA Dataverse access flow and downloads the published dataset files.
+### Retrieve The Data
 
 Run:
 
@@ -53,23 +85,22 @@ This downloads the dataset into:
 data/raw/DBE-KT22/
 ```
 
-The script resolves and downloads these files from the Dataverse record:
-- `1_DBE_KT22_file_descriptions_100102.xlsx`
-- `1_Script_to_generate_sequences_100102_py.zip`
-- `2_DBE_KT22_datafiles_100102_csv.zip`
-- `2_DBE_KT22_Practice_Sequences_100102_json.zip`
-
-To inspect the manifest without downloading the files:
+To inspect the remote manifest without downloading the files:
 
 ```powershell
 py src/fetch_dbe_kt22.py --manifest-only
 ```
 
-## Preprocess For Model 1
-The current default preprocessing stage follows the audit decisions for DBE-KT22:
+## Phase 1 Model 1 Workflow
+
+The currently implemented path is the Phase 1 Model 1 baseline on DBE-KT22.
+
+### Preprocess
+
+Default preprocessing rules:
 
 - use `Transaction.csv` as the primary attempt table
-- exclude rows with `is_hidden = true`
+- exclude `is_hidden = true`
 - use `answer_state` as the binary outcome
 - order each learner by `start_time` and then transaction `id`
 - require at least `10` visible attempts per learner
@@ -95,50 +126,70 @@ data/processed/model1/split_assignments.csv
 data/processed/model1/preprocess_summary.json
 ```
 
-The schema audit that motivated these defaults is recorded in:
+### Fit And Evaluate
 
-- [reports/model1_schema_audit.md](/D:/model1_baseline_agent_bundle/reports/model1_schema_audit.md)
-
-## Fit And Evaluate Model 1
-The repository now includes first-pass fit and evaluation scripts for the baseline hierarchical logistic model.
-
-Fit:
+Default variational fit:
 
 ```powershell
 python src/fit_model1.py
-```
-
-Evaluate:
-
-```powershell
 python src/evaluate_model1.py
 ```
 
-Default fit/evaluation configs:
+Configs:
 
-```text
-config/model1_fit.json
-config/model1_evaluate.json
-```
+- [model1_fit.json](/D:/model1_baseline_agent_bundle/config/model1_fit.json)
+- [model1_evaluate.json](/D:/model1_baseline_agent_bundle/config/model1_evaluate.json)
+
+Available MCMC configs:
+
+- pilot: [model1_fit_mcmc.json](/D:/model1_baseline_agent_bundle/config/model1_fit_mcmc.json)
+- fuller pass: [model1_fit_mcmc_full.json](/D:/model1_baseline_agent_bundle/config/model1_fit_mcmc_full.json)
+- stricter convergence pass: [model1_fit_mcmc_strict.json](/D:/model1_baseline_agent_bundle/config/model1_fit_mcmc_strict.json)
+
+Matching evaluation configs:
+
+- [model1_evaluate_mcmc.json](/D:/model1_baseline_agent_bundle/config/model1_evaluate_mcmc.json)
+- [model1_evaluate_mcmc_full.json](/D:/model1_baseline_agent_bundle/config/model1_evaluate_mcmc_full.json)
+- [model1_evaluate_mcmc_strict.json](/D:/model1_baseline_agent_bundle/config/model1_evaluate_mcmc_strict.json)
 
 Important runtime note:
 
-- the fit config explicitly points at the Rtools `g++` directory because this app session may not pick up the compiler from PATH automatically
-- the default fitting method is variational inference (`vi`) for practicality on the full DBE-KT22 training set
+- the fit configs explicitly point at the Rtools `g++` directory because this app session may not pick up the compiler from PATH automatically
 
-Default fit/evaluation outputs:
+### Current Model 1 Snapshot
 
-```text
-outputs/model1/model1_idata.nc
-outputs/model1/model1_fit_summary.json
-outputs/model1/model1_posterior_summary.csv
-outputs/model1/model1_vi_history.csv
-outputs/model1/model1_overall_metrics.csv
-outputs/model1/model1_learner_metrics.csv
-outputs/model1/model1_calibration_table.csv
-outputs/model1/figures/model1_calibration.png
-outputs/model1/model1_evaluation_summary.json
-```
+Primary preprocessing sample:
+
+- `157,989` processed rows
+- `1,138` eligible learners
+- `125,877` train rows
+- `32,112` test rows
+- `0` unseen-item test rows in the current Phase 1 Track A split
+
+Current best completed predictive baseline:
+
+- VI test log loss: `0.5446`
+- VI test Brier: `0.1841`
+- VI test AUC: `0.7609`
+
+Current best completed posterior diagnostics:
+
+- strict MCMC fit: `4` chains, `2000` tune, `2000` draws, `target_accept 0.97`
+- divergences: `0`
+- max `R-hat`: `1.01`
+- min bulk ESS: `204`
+- min tail ESS: `619`
+
+See [current_project_status.md](/D:/model1_baseline_agent_bundle/reports/current_project_status.md) for the status mapping from the old Model 1-only repo to the new two-phase plan.
+
+## Next Implementation Steps
+
+- finish documenting the strict Model 1 posterior run as the current best Bayesian baseline
+- implement Phase 1 Track B unseen-public-student initialization
+- implement Model 2 and compare it against Model 1 on primary probabilistic metrics
+- only if Model 2 clearly earns it, implement Model 3
+- only after Phase 1 model selection, start Phase 2 transfer code
 
 ## Non-Commit Rule
-Downloaded dataset files are local working data and should not be committed. The repository ignore rules exclude the local `data/` tree so the retrieval process is documented, but the actual data stays out of version control.
+
+Downloaded datasets and generated outputs are local working artifacts and should not be committed. The repository ignore rules exclude `data/`, `outputs/`, the virtual environment, and temporary bundle-extraction directories.

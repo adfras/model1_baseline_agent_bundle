@@ -3,3 +3,5 @@ data/
 *.egg-info/
 __pycache__/
 outputs/
+full_project_agent_bundle.zip
+tmp_full_project_agent_bundle_*/

@@ -1,94 +1,139 @@
 # AGENTS.md
 
 ## Mission
-This repository exists to implement and evaluate **Model 1**, a small-scope baseline for trial-level learner response data. The goal is **not** a full personalised learning system. The goal is a reproducible baseline hierarchical logistic model that predicts next-attempt correctness for **already-observed learners**.
+This repository exists to run a **two-phase, small-scope modelling programme** for trial-level learner response data.
 
-## Load the baseline skill
-When a task mentions **Model 1**, **baseline**, **DBE-KT22**, **learner-response data**, **next-attempt prediction**, **binary outcomes**, or **forward holdouts**, load the skill `model1-baseline-binary-logistic`.
+The project is deliberately **not** a full personalised learning system.
+It has two aims only:
 
-## Scope guardrails
+1. **Phase 1:** develop and compare three sequential models on a public online-learning dataset.
+2. **Phase 2:** take the chosen Phase 1 model and use it as a **warm start** for a new local sample, so prediction for new local students does not begin from a blank slate.
+
+## Project scope
 Stay inside these boundaries unless the user explicitly expands scope:
 - Binary outcome only: `correct` / `incorrect`.
-- Already-observed learners only.
-- Chronological forward prediction only.
-- Primary question: does the baseline model produce sensible next-attempt probability forecasts?
-- No learner-specific volatility terms.
-- No latent state-space models, HMMs, BKT, DKT, or neural KT.
-- No adaptive decision rules, mastery controllers, or personalised learning workflows.
-- No cold-start, new-student, or new-item generalisation claims in the primary analysis.
-- No subgroup fairness analyses unless explicitly requested.
+- Trial-level learner-response data with preserved chronology.
+- Public-data development first; local-data transfer second.
+- Probabilistic next-attempt prediction is the primary outcome.
+- Calibration and log-score matter more than raw accuracy.
+- The first paper is about **forecasting and transfer**, not adaptive tutoring, rule-change control, or full personalised learning.
 
-## Default model definition
-Use this as the starting baseline:
+## Phase structure
 
-\[
-\text{logit}(P(y_{it}=1)) = \beta_0 + \alpha_i + \gamma_j + \beta_{\text{practice}}\,\log(1+\text{opp}_{it})
-\]
+### Phase 1: public-data model development
+Fit the following model ladder in order:
 
-Where:
-- \(y_{it}\) is correctness for learner \(i\) on item \(j\) at trial \(t\)
-- \(\alpha_i\) is a learner random intercept
-- \(\gamma_j\) is an item random intercept / difficulty term
-- \(\text{opp}_{it}\) is prior opportunity count within learner before trial \(t\)
+1. **Model 1: baseline hierarchical logistic**
+   - learner random intercept
+   - item random intercept
+   - one shared practice term
 
-If the dataset has a stable `skill_id` and good coverage, a **secondary sensitivity analysis** may replace `log(1 + overall_opportunity)` with `log(1 + skill_opportunity)`. Do **not** make that the default.
+2. **Model 2: random-slope learner-growth model**
+   - Model 1 plus learner-specific practice slopes
+   - separates baseline proficiency from learning rate
 
-## Preferred stack
-- If the repository already has a modelling stack, stay in that stack.
-- Otherwise default to **Python 3.11 + pandas + pyarrow + Bambi/PyMC + ArviZ + matplotlib**.
-- Keep the code easy to extend later to a volatility-aware model.
+3. **Model 3: dynamic learner-volatility model**
+   - Model 2 plus latent learner state deviations over time
+   - learner-specific latent volatility
+   - used to test whether instability improves probabilistic forecasts beyond Model 2
+
+### Phase 2: public-to-local transfer
+- Freeze the Phase 1 model family after comparison.
+- Transfer the **model structure** and **public-learned hyperparameters/priors** to the local dataset.
+- Compare:
+  - a **weak-prior local fit** that starts nearly from scratch
+  - a **public-informed warm-start fit** using Phase 1 priors
+- Evaluate only on **held-out local students**.
+- Focus especially on **early local attempts**.
+
+## Skill routing
+Use the matching skill based on the task:
+
+- **`model1-baseline-binary-logistic`**
+  Use for the public-data baseline.
+
+- **`model2-random-slope-binary-logistic`**
+  Use for the public-data random-slope extension.
+
+- **`model3-dynamic-volatility-binary-logistic`**
+  Use for the public-data volatility/uncertainty extension.
+
+- **`phase2-transfer-warm-start`**
+  Use after Phase 1 when transferring the chosen model family to the local dataset.
 
 ## Data rules
 - Never shuffle rows before splitting.
 - Never do random row-level train/test splits.
-- Preserve each learner's time order.
-- Use only variables available **before** the outcome is known.
-- Exclude same-trial post-outcome variables from Model 1 unless explicitly asked for an auxiliary analysis. This usually means excluding variables such as final `time_taken`, `hint_used`, `num_answer_changes`, or other signals collected during/after the attempt.
-- If later test rows contain items never seen in training, do not silently drop them without reporting it.
-  - For the **primary** first-paper analysis, prefer restricting the main evaluation to later rows whose item IDs were observed in training.
-  - Report the number and proportion of excluded new-item rows.
+- Preserve each learner's time order end to end.
+- Use only variables available before or at the point of prediction.
+- For Models 1 and 2, exclude same-trial process variables that are unavailable until the attempt is underway or finished.
+  - Examples usually excluded from the main models: `time_taken`, `hint_used`, `num_answer_changes`, final confidence, and other in-progress/post-response signals.
+- For Model 3, only add latent volatility/state terms; do not silently convert the project into a same-trial behaviour-classification task.
+- If later rows contain unseen items, report them explicitly.
+  - For the primary first-paper analysis, prefer a main evaluation on later rows whose item IDs were seen in the relevant training data.
+  - Report the number and proportion of excluded unseen-item rows.
 
 ## Default split strategy
-For each learner with enough history, fit on the early portion and evaluate on the later portion.
-- Preferred starting split: **80% train / 20% test within learner**, in time order.
-- If validation is needed, use **70/15/15** in time order.
+### Phase 1 Track A: seen-learner forward prediction
+- Within learner, split in time order.
+- Preferred starting split: **80% train / 20% test** within learner.
+- If validation is needed: **70/15/15** within learner.
 - Set and document a minimum-history threshold before fitting.
-- Keep split code deterministic and save the split assignments.
+
+### Phase 1 Track B: unseen-public-student transfer
+- Split by `student_id` into train / validation / test.
+- Train on public train students only.
+- For each public test student, predict sequentially from their first observed local row onward.
+
+### Phase 2: local external validation
+- Split the local dataset by `student_id`.
+- Keep a small **local calibration subset** for local item effects / offsets.
+- Keep an **untouched local external-test set** of students for the main transfer evaluation.
 
 ## Evaluation
-Primary metrics:
-- held-out **log loss / log predictive density**
+Primary metrics for every phase/model:
+- held-out **log loss / mean log predictive density**
 - **Brier score**
-- **calibration plot**
 - **calibration intercept and slope**
+- **calibration curve / reliability plot**
 
 Secondary metrics:
 - accuracy
 - AUC
 
-Report metrics overall and, when sensible, as distributions across learners.
+For Phase 2, also report metrics by early-attempt windows such as:
+- attempts 1-5
+- attempts 6-10
+- attempts 11-20
 
 ## Required deliverables
 Unless the user asks otherwise, produce:
-- a schema and feature note
+- a data dictionary / schema note
 - preprocessing code
-- model fitting code
+- split-generation code
+- fitting code for each requested model
 - evaluation code
+- saved metrics tables
+- calibration figures
 - a concise methods summary
-- saved metrics and figures
-- a reproducible config or single command to rerun the pipeline
+- a comparison note when more than one model is fitted
+- for Phase 2, a transfer note describing what was carried from public to local data
 
-## Data retrieval record
-- Primary dataset: **DBE-KT22** from ADA Dataverse.
-- Source DOI: `10.26193/6DZWOH`
-- Landing page: <https://doi.org/10.26193/6DZWOH>
-- Scripted retrieval command: `py src/fetch_dbe_kt22.py`
-- Default local destination: `data/raw/DBE-KT22/`
-- Treat downloaded and extracted dataset files as local working data. Do **not** commit them to version control.
-- Keep enough documentation in Markdown so another agent can re-fetch the data without relying on prior chat context.
+## Decision rules
+- Fit Models 1, 2, and 3 in order.
+- If Model 2 does not improve meaningfully over Model 1 on primary probabilistic metrics, stop and simplify.
+- If Model 3 does not improve meaningfully over Model 2 on primary probabilistic metrics and calibration, do not carry Model 3 into Phase 2 by default.
+- Only transfer the most complex model that clearly earns its keep.
+
+## Preferred stack
+- If the repository already has a modelling stack, stay in that stack.
+- Otherwise default to **Python 3.11 + pandas + pyarrow + Bambi/PyMC + ArviZ + matplotlib**.
+- Keep all code modular so the same data schema and evaluation code can be reused in Phase 2.
 
 ## Working style
-- Keep the implementation simple, inspectable, and reproducible.
-- Make grounded assumptions, document them in a short assumptions note, and keep moving.
-- Do not add extensions just because they are possible.
-- Leave the repository in a state that is easy to extend later to a learner-volatility model.
+- Keep implementation simple, inspectable, and reproducible.
+- Make grounded assumptions, document them briefly, and keep moving.
+- Do not expand into BKT, DKT, RNNs, transformers, adaptive policy learning, or full personalised learning unless the user explicitly changes scope.
+- Preserve the distinction between:
+  - **Phase 1:** public-data model development
+  - **Phase 2:** warm-start transfer to local students

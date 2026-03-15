@@ -1,0 +1,19 @@
+{
+  "processed_trials_path": "data/processed/model1/learner_trials.csv",
+  "idata_path": "outputs/model1_mcmc_strict/model1_idata.nc",
+  "fit_summary_path": "outputs/model1_mcmc_strict/model1_fit_summary.json",
+  "posterior_summary_path": "outputs/model1_mcmc_strict/model1_posterior_summary.csv",
+  "diagnostics_summary_path": "outputs/model1_mcmc_strict/model1_diagnostics_summary.csv",
+  "vi_history_path": "outputs/model1_mcmc_strict/model1_vi_history.csv",
+  "compiler_bin_dir": "C:\\rtools43\\x86_64-w64-mingw32.static.posix\\bin",
+  "inference_method": "pymc",
+  "vi_method": "advi",
+  "vi_iterations": 20000,
+  "posterior_draws": 1000,
+  "draws": 2000,
+  "tune": 2000,
+  "chains": 4,
+  "cores": 4,
+  "random_seed": 20260315,
+  "target_accept": 0.97
+}
