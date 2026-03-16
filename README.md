@@ -14,12 +14,12 @@ What is implemented today:
 - DBE-KT22 public-data retrieval via [fetch_dbe_kt22.py](/D:/model1_baseline_agent_bundle/src/fetch_dbe_kt22.py)
 - DBE-KT22 schema audit via [model1_schema_audit.md](/D:/model1_baseline_agent_bundle/reports/model1_schema_audit.md)
 - Phase 1 Track A preprocessing and deterministic within-learner chronological splits via [preprocess_model1.py](/D:/model1_baseline_agent_bundle/src/preprocess_model1.py)
+- Phase 1 Track B unseen-public-student split generation via [split_model1_track_b.py](/D:/model1_baseline_agent_bundle/src/split_model1_track_b.py)
 - Model 1 fit and evaluation scripts via [fit_model1.py](/D:/model1_baseline_agent_bundle/src/fit_model1.py) and [evaluate_model1.py](/D:/model1_baseline_agent_bundle/src/evaluate_model1.py)
 - multiple Model 1 fitting paths: variational inference, pilot MCMC, fuller MCMC, and a stricter MCMC convergence run
 
 What is specified but not implemented yet:
 
-- Phase 1 Track B unseen-public-student initialization
 - Model 2 random-slope learner-growth model
 - Model 3 dynamic learner-volatility model
 - Phase 2 public-to-local warm-start transfer
@@ -126,6 +126,38 @@ data/processed/model1/split_assignments.csv
 data/processed/model1/preprocess_summary.json
 ```
 
+### Track B Split
+
+Phase 1 Track B keeps public train, validation, and test sets disjoint by `student_id` while reusing the cleaned attempt table from Track A.
+
+Default Track B rules:
+
+- deterministic hash-based student split
+- `70%` train / `15%` validation / `15%` test by learner
+- primary evaluation restricted to rows whose items were seen in the public train students
+- unseen students handled at prediction time by sampling new learner effects from the fitted hierarchy
+
+Run:
+
+```powershell
+py src/split_model1_track_b.py
+```
+
+Default config:
+
+```text
+config/model1_track_b_split.json
+```
+
+Default outputs:
+
+```text
+data/processed/model1_track_b/learner_trials.csv
+data/processed/model1_track_b/student_split_assignments.csv
+data/processed/model1_track_b/split_assignments.csv
+data/processed/model1_track_b/track_b_summary.json
+```
+
 ### Fit And Evaluate
 
 Default variational fit:
@@ -139,6 +171,13 @@ Configs:
 
 - [model1_fit.json](/D:/model1_baseline_agent_bundle/config/model1_fit.json)
 - [model1_evaluate.json](/D:/model1_baseline_agent_bundle/config/model1_evaluate.json)
+
+Track B Model 1 configs:
+
+- split: [model1_track_b_split.json](/D:/model1_baseline_agent_bundle/config/model1_track_b_split.json)
+- fit: [model1_track_b_fit.json](/D:/model1_baseline_agent_bundle/config/model1_track_b_fit.json)
+- validation evaluation: [model1_track_b_evaluate_validation.json](/D:/model1_baseline_agent_bundle/config/model1_track_b_evaluate_validation.json)
+- test evaluation: [model1_track_b_evaluate_test.json](/D:/model1_baseline_agent_bundle/config/model1_track_b_evaluate_test.json)
 
 Available MCMC configs:
 
@@ -180,12 +219,29 @@ Current best completed posterior diagnostics:
 - min bulk ESS: `204`
 - min tail ESS: `619`
 
+Phase 1 Track B student-wise split:
+
+- `796` train students
+- `170` validation students
+- `172` test students
+- `110,434` train rows
+- `22,891` validation rows
+- `24,664` test rows
+- `0` unseen-item rows in the primary validation and test evaluations
+
+Track B VI evaluation:
+
+- validation log loss: `0.4357`
+- validation Brier: `0.1402`
+- validation AUC: `0.7965`
+- test log loss: `0.4538`
+- test Brier: `0.1478`
+- test AUC: `0.7892`
+
 See [current_project_status.md](/D:/model1_baseline_agent_bundle/reports/current_project_status.md) for the status mapping from the old Model 1-only repo to the new two-phase plan.
 
 ## Next Implementation Steps
 
-- finish documenting the strict Model 1 posterior run as the current best Bayesian baseline
-- implement Phase 1 Track B unseen-public-student initialization
 - implement Model 2 and compare it against Model 1 on primary probabilistic metrics
 - only if Model 2 clearly earns it, implement Model 3
 - only after Phase 1 model selection, start Phase 2 transfer code

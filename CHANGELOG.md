@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-03-16
+
+### Added
+- deterministic Phase 1 Track B student-split generation via [src/split_model1_track_b.py](/D:/model1_baseline_agent_bundle/src/split_model1_track_b.py)
+- Track B split and evaluation configs at [config/model1_track_b_split.json](/D:/model1_baseline_agent_bundle/config/model1_track_b_split.json), [config/model1_track_b_fit.json](/D:/model1_baseline_agent_bundle/config/model1_track_b_fit.json), [config/model1_track_b_evaluate_validation.json](/D:/model1_baseline_agent_bundle/config/model1_track_b_evaluate_validation.json), and [config/model1_track_b_evaluate_test.json](/D:/model1_baseline_agent_bundle/config/model1_track_b_evaluate_test.json)
+- Track B run note at [reports/model1_track_b_run.md](/D:/model1_baseline_agent_bundle/reports/model1_track_b_run.md)
+
+### Documented
+- completed Phase 1 Track B implementation and results in [README.md](/D:/model1_baseline_agent_bundle/README.md) and [reports/current_project_status.md](/D:/model1_baseline_agent_bundle/reports/current_project_status.md)
+- strict Model 1 MCMC held-out metrics in [reports/current_project_status.md](/D:/model1_baseline_agent_bundle/reports/current_project_status.md)
+
+### Current Track B state
+- `1,138` eligible students are split deterministically into `796` train, `170` validation, and `172` test students
+- the first Track B fit uses VI on `110,434` training rows and `212` items
+- primary Track B evaluation contains `0` unseen-item rows in validation and `0` unseen-item rows in test
+- validation metrics: log loss `0.4357`, Brier `0.1402`, accuracy `0.7982`, AUC `0.7965`
+- test metrics: log loss `0.4538`, Brier `0.1478`, accuracy `0.7855`, AUC `0.7892`
+
 ## 2026-03-15
 
 ### Added
