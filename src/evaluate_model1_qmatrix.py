@@ -53,9 +53,18 @@ def calibration_intercept_slope(y_true: np.ndarray, prob: np.ndarray) -> tuple[f
         return np.array([error.sum(), np.sum(error * x)], dtype=float)
 
     result = minimize(objective, x0=np.array([0.0, 1.0]), jac=gradient, method="BFGS")
-    if not result.success:
-        return float("nan"), float("nan")
-    return float(result.x[0]), float(result.x[1])
+    if result.success and np.all(np.isfinite(result.x)):
+        return float(result.x[0]), float(result.x[1])
+
+    fallback = minimize(objective, x0=np.array([0.0, 1.0]), method="L-BFGS-B")
+    if fallback.success and np.all(np.isfinite(fallback.x)):
+        return float(fallback.x[0]), float(fallback.x[1])
+
+    fallback = minimize(objective, x0=np.array([0.0, 1.0]), method="Powell")
+    if fallback.success and np.all(np.isfinite(fallback.x)):
+        return float(fallback.x[0]), float(fallback.x[1])
+
+    return float("nan"), float("nan")
 
 
 def overall_metrics(y_true: np.ndarray, prob: np.ndarray) -> dict[str, float]:

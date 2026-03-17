@@ -7,6 +7,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from kc_history_common import add_decay_features
+
 
 DEFAULT_CONFIG_PATH = Path("config/phase1_multikc_preprocess.json")
 
@@ -53,6 +55,7 @@ def build_schema_note(path: Path, summary: dict) -> None:
     counts = summary["counts"]
     test_profile = summary["test_profile"]
     practice = summary["practice"]
+    recency = summary["recency"]
     payload = f"""# Phase 1 Multi-KC Discovery Schema Note
 
 This note records the full-data multi-KC Phase 1 discovery table built from DBE-KT22.
@@ -77,6 +80,8 @@ Current update rule summary:
 
 - KC increment per linked KC: `{practice["increment_description"]}`
 - Practice aggregation: `{practice["aggregation_description"]}`
+- Recency decay alpha currently materialized in the long table: `{recency["decay_alpha"]}`
+- Due-review threshold for default long-table flags: `{recency["due_review_hours"]}` hours
 
 Additional summaries retained on each attempt:
 
@@ -111,6 +116,8 @@ Additional summaries retained on each attempt:
 
 - KC opportunity monotone within student-KC: `{summary["validation"]["kc_opportunity_monotone"]}`
 - Chronology violations after sorting: `{summary["validation"]["chronology_violations"]}`
+- `alpha = 1.0` decays match cumulative prior success counts: `{summary["validation"]["alpha_one_success_matches_count"]}`
+- `alpha = 1.0` decays match cumulative prior failure counts: `{summary["validation"]["alpha_one_failure_matches_count"]}`
 
 ## Held-out profile
 
@@ -141,6 +148,8 @@ def main() -> int:
     min_history = int(config["min_history"])
     exclude_hidden = bool(config.get("exclude_hidden", True))
     kc_update_mode = str(config.get("kc_update_mode", "full_credit"))
+    recency_alpha = float(config.get("recency_alpha", 1.0))
+    due_review_hours = float(config.get("due_review_hours", 48.0))
     if kc_update_mode not in {"full_credit", "fractional_equal"}:
         raise ValueError("kc_update_mode must be one of: full_credit, fractional_equal")
 
@@ -223,10 +232,33 @@ def main() -> int:
             grouped_exposure.cumsum() - attempt_kc["kc_exposure_increment"]
         ).astype("float64")
         increment_description = "1 / kc_count per linked KC"
+
+    attempt_kc["kc_success_increment"] = (
+        attempt_kc["correct"].to_numpy(dtype="float64") * attempt_kc["kc_exposure_increment"].to_numpy(dtype="float64")
+    )
+    attempt_kc["kc_failure_increment"] = (
+        (1.0 - attempt_kc["correct"].to_numpy(dtype="float64"))
+        * attempt_kc["kc_exposure_increment"].to_numpy(dtype="float64")
+    )
+    success_grouped = attempt_kc.groupby(["student_id", "kc_id"])["kc_success_increment"]
+    failure_grouped = attempt_kc.groupby(["student_id", "kc_id"])["kc_failure_increment"]
+    attempt_kc["kc_prior_success_count"] = (
+        success_grouped.cumsum() - attempt_kc["kc_success_increment"]
+    ).astype("float64")
+    attempt_kc["kc_prior_failure_count"] = (
+        failure_grouped.cumsum() - attempt_kc["kc_failure_increment"]
+    ).astype("float64")
     attempt_kc["kc_practice_component"] = np.log1p(attempt_kc["kc_opportunity"].to_numpy(dtype="float64"))
+    attempt_kc["kc_success_component"] = np.log1p(attempt_kc["kc_prior_success_count"].to_numpy(dtype="float64"))
+    attempt_kc["kc_failure_component"] = np.log1p(attempt_kc["kc_prior_failure_count"].to_numpy(dtype="float64"))
     attempt_kc["kc_weight_equal"] = 1.0 / attempt_kc["kc_count"].to_numpy(dtype="float64")
     attempt_kc["kc_practice_component_weighted"] = (
         attempt_kc["kc_practice_component"] * attempt_kc["kc_weight_equal"]
+    )
+    attempt_kc = add_decay_features(
+        attempt_kc,
+        decay_alpha=recency_alpha,
+        due_review_hours=due_review_hours,
     )
 
     aggregation = {
@@ -330,6 +362,47 @@ def main() -> int:
         .apply(lambda s: bool((s.diff().fillna(1) >= 0).all()))
         .all()
     )
+    alpha_one_check = add_decay_features(
+        eligible_attempt_kc[
+            [
+                "attempt_id",
+                "student_id",
+                "item_id",
+                "correct",
+                "timestamp",
+                "kc_id",
+                "kc_name",
+                "kc_relationship_id",
+                "kc_count",
+                "kc_opportunity",
+                "kc_exposure_increment",
+                "kc_success_increment",
+                "kc_failure_increment",
+                "kc_prior_success_count",
+                "kc_prior_failure_count",
+                "kc_practice_component",
+                "kc_success_component",
+                "kc_failure_component",
+                "kc_weight_equal",
+            ]
+        ].copy(),
+        decay_alpha=1.0,
+        due_review_hours=due_review_hours,
+    )
+    alpha_one_success_matches = bool(
+        np.allclose(
+            alpha_one_check["kc_prior_success_decay"].to_numpy(dtype="float64"),
+            alpha_one_check["kc_prior_success_count"].to_numpy(dtype="float64"),
+            atol=1e-8,
+        )
+    )
+    alpha_one_failure_matches = bool(
+        np.allclose(
+            alpha_one_check["kc_prior_failure_decay"].to_numpy(dtype="float64"),
+            alpha_one_check["kc_prior_failure_count"].to_numpy(dtype="float64"),
+            atol=1e-8,
+        )
+    )
 
     processed_columns = [
         "attempt_id",
@@ -398,15 +471,31 @@ def main() -> int:
             "attempt_id",
             "student_id",
             "item_id",
+            "correct",
+            "timestamp",
             "kc_id",
             "kc_name",
             "kc_relationship_id",
             "kc_count",
             "kc_opportunity",
+            "kc_exposure_increment",
+            "kc_success_increment",
+            "kc_failure_increment",
+            "kc_prior_success_count",
+            "kc_prior_failure_count",
+            "kc_prior_success_decay",
+            "kc_prior_failure_decay",
+            "kc_last_seen_hours",
+            "kc_due_review_default",
+            "decay_alpha_used",
+            "due_review_hours_threshold",
             "kc_practice_component",
+            "kc_success_component",
+            "kc_failure_component",
             "kc_weight_equal",
         ]
     ].copy()
+    attempt_kc_long["timestamp"] = attempt_kc_long["timestamp"].dt.strftime("%Y-%m-%dT%H:%M:%S%z")
 
     ensure_parent(processed_trials_path)
     processed.to_csv(processed_trials_path, index=False)
@@ -440,11 +529,17 @@ def main() -> int:
         "validation": {
             "kc_opportunity_monotone": kc_monotone,
             "chronology_violations": chronology_violations,
+            "alpha_one_success_matches_count": alpha_one_success_matches,
+            "alpha_one_failure_matches_count": alpha_one_failure_matches,
         },
         "practice": {
             "kc_update_mode": kc_update_mode,
             "increment_description": increment_description,
             "aggregation_description": "sum(log1p(kc_opportunity_k)) across linked KCs",
+        },
+        "recency": {
+            "decay_alpha": recency_alpha,
+            "due_review_hours": due_review_hours,
         },
         "test_profile": {
             "mean_kc_count_test": float(test_rows["kc_count"].mean()) if len(test_rows) else None,

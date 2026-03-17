@@ -11,21 +11,20 @@ from scipy.optimize import minimize
 from scipy.special import expit, logit
 from sklearn.metrics import accuracy_score, log_loss, roc_auc_score
 
-from qmatrix_common import (
-    QMatrixContext,
-    build_design_matrices,
-    ensure_parent,
-    load_attempt_kc_long,
-    load_json,
-    load_trials,
+from kc_history_common import resolve_history_value_columns
+from qmatrix_common import QMatrixContext, ensure_parent, load_json, load_trials
+from qmatrix_pfa_common import (
+    build_feature_matrix,
+    load_attempt_kc_long_pfa,
+    prepare_attempt_kc_long_for_history,
 )
 
 
-DEFAULT_CONFIG_PATH = Path("config/phase1_multikc_qmatrix_model2_evaluate.json")
+DEFAULT_CONFIG_PATH = Path("config/phase1_multikc_qmatrix_pfa_model3_evaluate.json")
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Evaluate explicit Q-matrix Model 2.")
+    parser = argparse.ArgumentParser(description="Evaluate explicit Q-matrix PFA Model 3.")
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH, help="Path to config JSON.")
     return parser.parse_args()
 
@@ -100,13 +99,7 @@ def calibration_plot(table: pd.DataFrame, output_path: Path, title: str) -> None
     ensure_parent(output_path)
     fig, ax = plt.subplots(figsize=(6, 6))
     ax.plot([0, 1], [0, 1], linestyle="--", color="gray", linewidth=1)
-    ax.plot(
-        table["mean_predicted_probability"],
-        table["observed_rate"],
-        marker="o",
-        linewidth=1.5,
-        color="#1f77b4",
-    )
+    ax.plot(table["mean_predicted_probability"], table["observed_rate"], marker="o", linewidth=1.5, color="#1f77b4")
     ax.set_xlabel("Mean predicted probability")
     ax.set_ylabel("Observed correctness rate")
     ax.set_title(title)
@@ -140,15 +133,26 @@ def load_context(posterior_npz: np.lib.npyio.NpzFile) -> QMatrixContext:
     )
 
 
+def logistic_normal_mean(linear_mean: np.ndarray, variance: np.ndarray) -> np.ndarray:
+    scale = np.sqrt(1.0 + (np.pi * variance / 8.0))
+    return expit(linear_mean / scale)
+
+
 def predict_probabilities(
     posterior: np.lib.npyio.NpzFile,
     context: QMatrixContext,
+    train_df: pd.DataFrame,
     eval_df: pd.DataFrame,
     attempt_kc_long: pd.DataFrame,
     *,
     batch_size: int,
+    success_value_column: str,
+    failure_value_column: str,
 ) -> np.ndarray:
-    x_kc_base, x_kc_practice = build_design_matrices(eval_df, attempt_kc_long, context)
+    x_kc_base = build_feature_matrix(eval_df, attempt_kc_long, context, value_column="kc_base_indicator")
+    x_kc_success = build_feature_matrix(eval_df, attempt_kc_long, context, value_column=success_value_column)
+    x_kc_failure = build_feature_matrix(eval_df, attempt_kc_long, context, value_column=failure_value_column)
+    x_kc_practice = build_feature_matrix(eval_df, attempt_kc_long, context, value_column="kc_practice_component")
     practice_total = x_kc_practice.sum(axis=1).astype("float64")
 
     intercept = posterior["Intercept"].astype("float64")
@@ -156,22 +160,67 @@ def predict_probabilities(
     student_slope = posterior["student_slope"].astype("float64")
     item_effect = posterior["item_effect"].astype("float64")
     kc_intercept = posterior["kc_intercept"].astype("float64")
-    kc_practice = posterior["kc_practice"].astype("float64")
+    kc_success = posterior["kc_success"].astype("float64")
+    kc_failure = posterior["kc_failure"].astype("float64")
+    state_sigma_student = posterior["state_sigma_student"].astype("float64")
+    rho = posterior["rho"].astype("float64")
+    latent_state = posterior["latent_state"].astype("float64")
+    state_bin_width = int(np.asarray(posterior["state_bin_width"]).reshape(-1)[0])
 
     student_idx = eval_df["student_id"].map(context.student_lookup).to_numpy(dtype="int64")
     item_idx = eval_df["item_id"].map(context.item_lookup).to_numpy(dtype="int64")
+
+    train_state_bins = (
+        train_df.assign(state_bin=(train_df["overall_opportunity"] // state_bin_width).astype("int64"))
+        .groupby("student_id", sort=False)["state_bin"]
+        .max()
+    )
+    last_train_bin = eval_df["student_id"].map(train_state_bins)
+    if last_train_bin.isna().any():
+        missing = eval_df.loc[last_train_bin.isna(), "student_id"].astype("string").unique().tolist()
+        raise ValueError(f"Missing last training state bin for students: {missing[:5]}")
+    last_train_bin = last_train_bin.to_numpy(dtype="int64")
+    row_state_bin = (eval_df["overall_opportunity"] // state_bin_width).to_numpy(dtype="int64")
+    delta_steps = np.maximum(row_state_bin - last_train_bin, 0)
 
     n_rows = len(eval_df)
     probabilities = np.empty(n_rows, dtype="float64")
     for start in range(0, n_rows, batch_size):
         stop = min(start + batch_size, n_rows)
-        student_term = student_intercept[:, student_idx[start:stop]].T
-        student_slope_term = student_slope[:, student_idx[start:stop]].T * practice_total[start:stop, None]
-        item_term = item_effect[:, item_idx[start:stop]].T
+        chunk_students = student_idx[start:stop]
+        chunk_items = item_idx[start:stop]
+        chunk_delta = delta_steps[start:stop][None, :]
+        chunk_last_bin = last_train_bin[start:stop]
+
+        student_term = student_intercept[:, chunk_students].T
+        slope_term = student_slope[:, chunk_students].T * practice_total[start:stop, None]
+        item_term = item_effect[:, chunk_items].T
         kc_base_term = x_kc_base[start:stop].astype("float64") @ kc_intercept.T
-        kc_practice_term = x_kc_practice[start:stop].astype("float64") @ kc_practice.T
-        linear = intercept[None, :] + student_term + student_slope_term + item_term + kc_base_term + kc_practice_term
-        probabilities[start:stop] = expit(linear).mean(axis=1)
+        kc_success_term = x_kc_success[start:stop].astype("float64") @ kc_success.T
+        kc_failure_term = x_kc_failure[start:stop].astype("float64") @ kc_failure.T
+
+        last_state = latent_state[:, chunk_last_bin, chunk_students]
+        rho_power = np.power(rho[:, None], chunk_delta)
+        future_state_mean = last_state * rho_power
+        future_state_variance = np.where(
+            chunk_delta == 0,
+            0.0,
+            (state_sigma_student[:, chunk_students] ** 2)
+            * (1.0 - np.power(rho[:, None], 2 * chunk_delta))
+            / np.clip(1.0 - rho[:, None] ** 2, 1e-6, None),
+        )
+
+        linear_mean = (
+            intercept[None, :]
+            + student_term
+            + slope_term
+            + item_term
+            + kc_base_term
+            + kc_success_term
+            + kc_failure_term
+            + future_state_mean.T
+        )
+        probabilities[start:stop] = logistic_normal_mean(linear_mean, future_state_variance.T).mean(axis=1)
         print(f"Predicted rows {start + 1}-{stop} of {n_rows}")
 
     return np.clip(probabilities, 1e-6, 1 - 1e-6)
@@ -182,10 +231,20 @@ def main() -> int:
     config = load_json(args.config)
 
     trials = load_trials(Path(config["processed_trials_path"]))
-    attempt_kc_long = load_attempt_kc_long(Path(config["attempt_kc_long_path"]))
     posterior = np.load(Path(config["posterior_draws_path"]), allow_pickle=True)
     context = load_context(posterior)
+    history_mode = str(config.get("history_mode", posterior["history_mode"].reshape(-1)[0] if "history_mode" in posterior.files else "pfa")).lower()
+    decay_alpha = float(config.get("decay_alpha", np.asarray(posterior["decay_alpha"]).reshape(-1)[0] if "decay_alpha" in posterior.files else 1.0))
+    due_review_hours = float(config.get("due_review_hours", 48.0))
+    attempt_kc_long = prepare_attempt_kc_long_for_history(
+        load_attempt_kc_long_pfa(Path(config["attempt_kc_long_path"])),
+        history_mode=history_mode,
+        decay_alpha=decay_alpha,
+        due_review_hours=due_review_hours,
+    )
+    success_value_column, failure_value_column = resolve_history_value_columns(history_mode)
 
+    train_df = trials.loc[trials["split"] == "train"].copy()
     eval_df = trials.loc[trials["split"] == str(config.get("evaluate_split", "test"))].copy()
     if bool(config.get("primary_eval_only", True)):
         eval_df = eval_df.loc[eval_df["primary_eval_eligible"] == 1].copy()
@@ -194,15 +253,18 @@ def main() -> int:
     probabilities = predict_probabilities(
         posterior,
         context,
+        train_df,
         eval_df,
         attempt_kc_long,
         batch_size=int(config.get("prediction_batch_size", 1000)),
+        success_value_column=success_value_column,
+        failure_value_column=failure_value_column,
     )
 
     eval_df = eval_df.copy()
     eval_df["predicted_probability"] = probabilities
-    eval_df["track"] = str(config.get("track_name", "phase1_multikc_qmatrix"))
-    eval_df["model_name"] = "model2_qmatrix"
+    eval_df["track"] = str(config.get("track_name", "phase1_multikc_qmatrix_pfa"))
+    eval_df["model_name"] = f"model3_qmatrix_{history_mode}"
 
     metrics = overall_metrics(eval_df["correct"].to_numpy(), probabilities)
     overall_path = Path(config["overall_metrics_path"])
@@ -217,7 +279,7 @@ def main() -> int:
     cal_table_path = Path(config["calibration_table_path"])
     ensure_parent(cal_table_path)
     cal_table.to_csv(cal_table_path, index=False)
-    calibration_plot(cal_table, Path(config["calibration_figure_path"]), "Explicit Q-matrix Model 2 Calibration")
+    calibration_plot(cal_table, Path(config["calibration_figure_path"]), "Explicit Q-matrix PFA Model 3 Calibration")
 
     row_predictions_path = Path(config["row_predictions_path"])
     ensure_parent(row_predictions_path)
@@ -241,6 +303,8 @@ def main() -> int:
         "evaluation_students": int(eval_df["student_id"].nunique()),
         "evaluate_split": str(config.get("evaluate_split", "test")),
         "evaluation_mode": "track_a",
+        "history_mode": history_mode,
+        "decay_alpha": decay_alpha,
         "primary_eval_only": bool(config.get("primary_eval_only", True)),
         "seen_item_rows": int(len(eval_df)),
         "new_item_rows": 0,
@@ -250,7 +314,7 @@ def main() -> int:
         "calibration_table_path": str(cal_table_path),
         "calibration_figure_path": str(config["calibration_figure_path"]),
         "row_predictions_path": str(row_predictions_path),
-        "track": str(config.get("track_name", "phase1_multikc_qmatrix")),
+        "track": str(config.get("track_name", "phase1_multikc_qmatrix_pfa")),
     }
     write_json(Path(config["evaluation_summary_path"]), summary)
 

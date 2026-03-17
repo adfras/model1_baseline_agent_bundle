@@ -1,0 +1,18 @@
+{
+  "processed_trials_path": "data/processed/phase1_multikc/multikc_trials.csv",
+  "attempt_kc_long_path": "data/processed/phase1_multikc/multikc_attempt_kc_long.csv",
+  "posterior_draws_path": "outputs/phase1_multikc_qmatrix_rpfa/model2/model2_posterior_draws.npz",
+  "overall_metrics_path": "outputs/phase1_multikc_qmatrix_rpfa/model2/model2_overall_metrics.csv",
+  "learner_metrics_path": "outputs/phase1_multikc_qmatrix_rpfa/model2/model2_learner_metrics.csv",
+  "calibration_table_path": "outputs/phase1_multikc_qmatrix_rpfa/model2/model2_calibration_table.csv",
+  "calibration_figure_path": "outputs/phase1_multikc_qmatrix_rpfa/model2/figures/model2_calibration.png",
+  "evaluation_summary_path": "outputs/phase1_multikc_qmatrix_rpfa/model2/model2_evaluation_summary.json",
+  "row_predictions_path": "outputs/phase1_multikc_qmatrix_rpfa/model2/model2_row_predictions.csv",
+  "evaluate_split": "test",
+  "track_name": "phase1_multikc_qmatrix_rpfa",
+  "history_mode": "rpfa",
+  "decay_alpha": 0.9,
+  "due_review_hours": 48.0,
+  "primary_eval_only": true,
+  "prediction_batch_size": 1000
+}

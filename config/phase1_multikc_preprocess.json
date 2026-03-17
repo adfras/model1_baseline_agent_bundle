@@ -10,5 +10,7 @@
   "schema_note_path": "reports/phase1_multikc_schema_note.md",
   "train_fraction": 0.8,
   "min_history": 10,
-  "exclude_hidden": true
+  "exclude_hidden": true,
+  "recency_alpha": 0.9,
+  "due_review_hours": 48.0
 }

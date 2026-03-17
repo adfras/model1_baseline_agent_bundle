@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import pymc as pm
 import pytensor.tensor as pt
+from pytensor.scan.basic import scan
 
 
 def prepend_compiler_to_path(compiler_bin_dir: str | None) -> None:
@@ -43,6 +44,7 @@ def load_trials(path: Path) -> pd.DataFrame:
     df["correct"] = df["correct"].astype("int8")
     df["practice_feature"] = df["practice_feature"].astype("float64")
     df["trial_index_within_student"] = df["trial_index_within_student"].astype("int64")
+    df["overall_opportunity"] = df["overall_opportunity"].astype("int64")
     df["attempt_id"] = df["attempt_id"].astype("int64")
     return df
 
@@ -76,6 +78,8 @@ class QMatrixDataset:
     x_kc_practice: np.ndarray
     practice_total: np.ndarray
     correct: np.ndarray
+    state_bin_idx: np.ndarray | None = None
+    n_state_steps: int | None = None
 
 
 def build_context(train_df: pd.DataFrame, attempt_kc_long: pd.DataFrame) -> QMatrixContext:
@@ -129,6 +133,7 @@ def prepare_dataset(
     *,
     split: str,
     primary_eval_only: bool = False,
+    state_bin_width: int | None = None,
 ) -> QMatrixDataset:
     df = trials.loc[trials["split"] == split].copy()
     if primary_eval_only:
@@ -146,6 +151,14 @@ def prepare_dataset(
         raise ValueError(f"Encountered unseen item ids: {unseen[:5]}")
 
     x_kc_base, x_kc_practice = build_design_matrices(df, attempt_kc_long, context)
+    state_bin_idx = None
+    n_state_steps = None
+    if state_bin_width is not None:
+        if state_bin_width < 1:
+            raise ValueError("state_bin_width must be at least 1.")
+        state_bin_idx = (df["overall_opportunity"] // state_bin_width).to_numpy(dtype="int64")
+        n_state_steps = int(state_bin_idx.max()) + 1 if len(state_bin_idx) else 0
+
     return QMatrixDataset(
         df=df,
         student_idx=student_idx.to_numpy(dtype="int64"),
@@ -154,6 +167,8 @@ def prepare_dataset(
         x_kc_practice=x_kc_practice,
         practice_total=x_kc_practice.sum(axis=1).astype("float32"),
         correct=df["correct"].to_numpy(dtype="int8"),
+        state_bin_idx=state_bin_idx,
+        n_state_steps=n_state_steps,
     )
 
 
@@ -256,6 +271,103 @@ def build_model2_qmatrix(dataset: QMatrixDataset, context: QMatrixContext) -> pm
             + pt.dot(x_kc_base, kc_intercept)
             + pt.dot(x_kc_practice, kc_practice)
             + student_slope[student_idx] * practice_total
+        )
+
+        pm.Bernoulli("correct_obs", logit_p=linear, observed=dataset.correct)
+
+    return model
+
+
+def build_model3_qmatrix(dataset: QMatrixDataset, context: QMatrixContext) -> pm.Model:
+    if dataset.state_bin_idx is None or dataset.n_state_steps is None:
+        raise ValueError("Model 3 requires state_bin_idx and n_state_steps in the dataset.")
+
+    coords = {
+        "student": context.student_levels,
+        "item": context.item_levels,
+        "kc": context.kc_levels,
+        "state_step": list(range(dataset.n_state_steps)),
+    }
+    if dataset.n_state_steps > 1:
+        coords["state_step_rest"] = list(range(1, dataset.n_state_steps))
+
+    with pm.Model(coords=coords) as model:
+        student_idx = pm.Data("student_idx", dataset.student_idx)
+        item_idx = pm.Data("item_idx", dataset.item_idx)
+        state_step_idx = pm.Data("state_step_idx", dataset.state_bin_idx)
+        x_kc_base = pm.Data("x_kc_base", dataset.x_kc_base)
+        x_kc_practice = pm.Data("x_kc_practice", dataset.x_kc_practice)
+        practice_total = pm.Data("practice_total", dataset.practice_total)
+
+        intercept = pm.Normal("Intercept", mu=0.0, sigma=1.5)
+
+        student_intercept_sigma = pm.HalfNormal("student_intercept_sigma", sigma=1.0)
+        student_intercept_offset = pm.Normal("student_intercept_offset", mu=0.0, sigma=1.0, dims="student")
+        student_intercept = pm.Deterministic(
+            "student_intercept",
+            student_intercept_sigma * student_intercept_offset,
+            dims="student",
+        )
+
+        student_slope_sigma = pm.HalfNormal("student_slope_sigma", sigma=0.5)
+        student_slope_offset = pm.Normal("student_slope_offset", mu=0.0, sigma=1.0, dims="student")
+        student_slope = pm.Deterministic(
+            "student_slope",
+            student_slope_sigma * student_slope_offset,
+            dims="student",
+        )
+
+        item_sigma = pm.HalfNormal("item_sigma", sigma=1.0)
+        item_offset = pm.Normal("item_offset", mu=0.0, sigma=1.0, dims="item")
+        item_effect = pm.Deterministic("item_effect", item_sigma * item_offset, dims="item")
+
+        kc_intercept_sigma = pm.HalfNormal("kc_intercept_sigma", sigma=1.0)
+        kc_intercept_offset = pm.Normal("kc_intercept_offset", mu=0.0, sigma=1.0, dims="kc")
+        kc_intercept = pm.Deterministic("kc_intercept", kc_intercept_sigma * kc_intercept_offset, dims="kc")
+
+        kc_practice_sigma = pm.HalfNormal("kc_practice_sigma", sigma=0.5)
+        kc_practice_offset = pm.Normal("kc_practice_offset", mu=0.0, sigma=1.0, dims="kc")
+        kc_practice = pm.Deterministic("kc_practice", kc_practice_sigma * kc_practice_offset, dims="kc")
+
+        state_sigma_global = pm.HalfNormal("state_sigma_global", sigma=0.5)
+        state_sigma_student = pm.HalfNormal("state_sigma_student", sigma=state_sigma_global, dims="student")
+        rho = pm.Beta("rho", alpha=2.0, beta=2.0)
+
+        initial_state_raw = pm.Normal("state_initial_raw", mu=0.0, sigma=1.0, dims="student")
+        initial_state = initial_state_raw * state_sigma_student / pt.sqrt(1.0 - rho**2 + 1e-6)
+
+        if dataset.n_state_steps > 1:
+            innovation_raw = pm.Normal(
+                "state_innovation_raw",
+                mu=0.0,
+                sigma=1.0,
+                dims=("state_step_rest", "student"),
+            )
+
+            def ar_step(innovation_t, prev_state, rho_value, sigma_student):
+                return rho_value * prev_state + innovation_t * sigma_student
+
+            state_rest, _ = scan(
+                fn=ar_step,
+                sequences=[innovation_raw],
+                outputs_info=[initial_state],
+                non_sequences=[rho, state_sigma_student],
+                strict=True,
+            )
+            latent_state = pt.concatenate([initial_state[None, :], state_rest], axis=0)
+        else:
+            latent_state = initial_state[None, :]
+
+        latent_state = pm.Deterministic("latent_state", latent_state, dims=("state_step", "student"))
+
+        linear = (
+            intercept
+            + student_intercept[student_idx]
+            + item_effect[item_idx]
+            + pt.dot(x_kc_base, kc_intercept)
+            + pt.dot(x_kc_practice, kc_practice)
+            + student_slope[student_idx] * practice_total
+            + latent_state[state_step_idx, student_idx]
         )
 
         pm.Bernoulli("correct_obs", logit_p=linear, observed=dataset.correct)
@@ -372,6 +484,7 @@ def save_posterior_npz(
     context: QMatrixContext,
     *,
     model_kind: str,
+    state_bin_width: int | None = None,
 ) -> None:
     ensure_parent(output_path)
     posterior = idata.posterior
@@ -394,6 +507,17 @@ def save_posterior_npz(
     if model_kind == "model2":
         payload["student_slope_sigma"] = to_numpy_draws(posterior["student_slope_sigma"].values, 2)
         payload["student_slope"] = to_numpy_draws(posterior["student_slope"].values, 3)
+
+    if model_kind == "model3":
+        payload["student_slope_sigma"] = to_numpy_draws(posterior["student_slope_sigma"].values, 2)
+        payload["student_slope"] = to_numpy_draws(posterior["student_slope"].values, 3)
+        payload["state_sigma_global"] = to_numpy_draws(posterior["state_sigma_global"].values, 2)
+        payload["state_sigma_student"] = to_numpy_draws(posterior["state_sigma_student"].values, 3)
+        payload["rho"] = to_numpy_draws(posterior["rho"].values, 2)
+        payload["latent_state"] = to_numpy_draws(posterior["latent_state"].values, 4)
+        if state_bin_width is None:
+            raise ValueError("state_bin_width is required when saving model3 posterior draws.")
+        payload["state_bin_width"] = np.asarray([state_bin_width], dtype="int64")
 
     np.savez_compressed(output_path, **payload)
 

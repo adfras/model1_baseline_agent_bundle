@@ -1,0 +1,15 @@
+{
+  "processed_trials_path": "data/processed/phase1_multikc/multikc_trials.csv",
+  "attempt_kc_long_path": "data/processed/phase1_multikc/multikc_attempt_kc_long.csv",
+  "posterior_draws_path": "outputs/phase1_multikc_qmatrix_bin5/model3/model3_posterior_draws.npz",
+  "overall_metrics_path": "outputs/phase1_multikc_qmatrix_bin5/model3/model3_overall_metrics.csv",
+  "learner_metrics_path": "outputs/phase1_multikc_qmatrix_bin5/model3/model3_learner_metrics.csv",
+  "calibration_table_path": "outputs/phase1_multikc_qmatrix_bin5/model3/model3_calibration_table.csv",
+  "calibration_figure_path": "outputs/phase1_multikc_qmatrix_bin5/model3/figures/model3_calibration.png",
+  "evaluation_summary_path": "outputs/phase1_multikc_qmatrix_bin5/model3/model3_evaluation_summary.json",
+  "row_predictions_path": "outputs/phase1_multikc_qmatrix_bin5/model3/model3_row_predictions.csv",
+  "evaluate_split": "test",
+  "track_name": "phase1_multikc_qmatrix_bin5",
+  "primary_eval_only": true,
+  "prediction_batch_size": 1000
+}
