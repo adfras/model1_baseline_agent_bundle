@@ -139,8 +139,57 @@ What it changes relative to the collapsed-feature branch:
 
 Current role:
 
-- newest operational comparison branch for Models 1 and 2
-- current best place to test whether Model 2 adds real growth heterogeneity on the full dataset
+- newest operational comparison branch for the full ladder
+- current best place to test whether Models 2 and 3 add real heterogeneity on the full dataset
+
+## 6. Explicit Q-matrix PFA / R-PFA branch
+
+Definition:
+
+- keep all items
+- keep all linked KCs
+- keep KC structure directly in the likelihood
+- replace opportunity-only KC history with:
+  - prior KC wins
+  - prior KC fails
+- for the operational R-PFA path, optionally weight those histories by KC-opportunity lag
+
+Purpose:
+
+- improve the learner-history signal without dropping data
+- test whether better KC history matters more than extra latent-state tuning
+
+Current role:
+
+- best-yield predictive branch family in the repo
+- current operational mainline for learner modeling and offline policy replay
+
+## 7. Adaptive-policy replay branch
+
+Definition:
+
+- take the fitted PFA / R-PFA learner models
+- replay held-out students sequentially
+- score candidate items after each observed attempt
+- choose items under a small modular policy family
+
+Current v1 policy suite:
+
+- balanced challenge
+- harder challenge
+- confidence-building
+- failure-aware remediation
+- spacing-aware review
+
+Purpose:
+
+- bridge learner modeling to question selection
+- compare Model 2 and Model 3 as policy models rather than only as forecasters
+
+Current role:
+
+- first narrow offline policy test
+- does not estimate causal learning gain
 
 ## Short translation table
 
@@ -154,6 +203,10 @@ Current role:
   - same full dataset, only KC credit allocation changes
 - `explicit Q-matrix branch`:
   - all items kept, KC terms enter the likelihood directly
+- `explicit Q-matrix PFA / R-PFA branch`:
+  - explicit-Q branch plus wins/fails history, with optional recency weighting
+- `adaptive-policy replay branch`:
+  - sequential offline question-selection test built on the fitted learner models
 
 ## Current operational reading
 
@@ -161,6 +214,12 @@ Right now:
 
 - the old single-KC branch is a restrictive sensitivity check
 - the collapsed-feature and fractional multi-KC branches support richer heterogeneity
-- the explicit Q-matrix branch has now shown that Model 2 beats Model 1 on the same full-data held-out rows
+- the explicit Q-matrix branch shows that Model 2 beats Model 1 and Model 3 beats Model 2 on the same full-data held-out rows
+- the explicit Q-matrix PFA / R-PFA branch is now the best-yield predictive branch family
+- the selected operational RPFA alpha is `0.9`
+- the adaptive-policy replay branch is where Model 2 and Model 3 are compared as question-selection models
+- the current operational reading is:
+  - richest scientific model = Model 3 on the explicit Q-matrix ladder
+  - default policy model = R-PFA Model 2
 
 So when the repo says a result came from the `collapsed-feature branch`, that does **not** mean the old single-KC branch.

@@ -1,6 +1,19 @@
 # Phase 1 Branch Adjudication Note
 
+This note is a historical adjudication record from the earlier branch-comparison stage.
+
+The current repo mainline has moved beyond this specific primary-KC versus single-KC comparison and now treats:
+
+- the full multi-KC branches as operational
+- the fractional multi-KC branch as the main KC-allocation sensitivity
+- the single-KC branch as a restrictive construct-clean sensitivity check
+
 This note records the stronger Phase 1 adjudication after completing the full ladder on the primary single-KC branch and comparing matched held-out students across both KC-handling branches.
+
+It is now a **historical branch note**, not the current controlling summary. For the current repo focus, use:
+
+- [phase1_selection_memo.md](D:/model1_baseline_agent_bundle/reports/phase1_selection_memo.md)
+- [project_pivot_and_current_focus.md](D:/model1_baseline_agent_bundle/reports/project_pivot_and_current_focus.md)
 
 ## Primary single-KC branch
 
@@ -65,12 +78,14 @@ The public Phase 1 story is now sharper:
 
 That means the repo no longer has an unfinished-ladder problem. It has a **KC-handling dependence problem**.
 
-Operational rule for this repo:
+Operational reading from this historical comparison:
 
-- use the **full-dataset primary-KC branch** as the operational discovery mainline, because the project must use the full dataset
-- keep the single-KC branch as a construct-clean sensitivity analysis
+- the richer result appears on the **full-data KC-aware branches**
+- the restrictive **single-KC branch** likely throws away too much repeated same-skill structure to identify growth and stability robustly
+- the main issue is therefore not “must use the full dataset” as a rule by itself
+- the main issue is that the stricter single-KC restriction appears to remove signal needed for the richer heterogeneity terms
 
-Under that rule:
+Under that reading:
 
 - DBE contains real evidence for richer heterogeneity
 - the main scientific caveat is multi-KC assignment ambiguity

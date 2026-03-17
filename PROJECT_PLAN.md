@@ -1,245 +1,197 @@
-# Project Plan: Heterogeneity Discovery, Local Replication, Then Warm-Start
+# Project Plan: Full-Data Heterogeneity Discovery, Then RPFA Policy Prototyping
 
 ## Summary
 
-Reframe the project away from a public benchmark race and toward this question:
+The original scientific question remains:
 
 **Do learners differ in baseline level, growth, and stability in public longitudinal data, and do those same forms of heterogeneity replicate in a new student sample?**
 
-Then add the applied question:
+But the current project state adds an important operational pivot:
 
-**After replication, do public-informed priors estimate those learner differences earlier for new local students than weak-prior local fitting?**
+- local data is not yet available
+- the full-data public branch now supports richer learner heterogeneity
+- the best predictive yield came from better KC-history features, not from warm-start work
 
-This locks in:
+So the **current mainline focus** is:
 
-- public Phase 1 as **discovery of heterogeneity**
-- local Phase 2A as **conditional structural replication**
-- local Phase 2B as **conditional warm-start application**
-- Model 1 as the hurdle benchmark, not the endpoint
-- only a public-supported Model 2 or Model 3 as a trigger for the main scientific continuation
-- Model 2 and Model 3 as nested heterogeneity tests, not a leaderboard
+1. keep the public heterogeneity ladder scientifically coherent
+2. use the full dataset with explicit multi-KC structure
+3. upgrade the operational learner-model branch from plain PFA to **R-PFA**
+4. make learner-state estimates operational for **offline next-question targeting**
+5. hold local replication and warm-start as dormant scaffolding until local data exists
 
-## Scientific framing
+## Current framing
 
-Treat the three models as nested tests:
+There are now two linked but distinct evaluation targets.
 
-- **Model 1:** learners differ in starting level
-- **Model 2:** learners also differ in rate of improvement
-- **Model 3:** learners also differ in stability around that growth
+### 1. Scientific ladder
 
-Interpretation rule:
+Use the nested models as heterogeneity tests:
 
-- If Model 2 adds a practically non-trivial learner slope variance and clears the predictive gate, growth heterogeneity is present.
-- If Model 3 adds a practically non-trivial learner stability variance and clears the predictive gate, stability heterogeneity is present.
-- If only Model 1 survives, the public dataset has not given a stable answer to the main scientific question.
+- **Model 1:** baseline level heterogeneity
+- **Model 2:** growth heterogeneity
+- **Model 3:** stability heterogeneity
 
-## Phase 1: public heterogeneity discovery
+Decision rule:
 
-### Public discovery sample
+- an added heterogeneity SD must clear the practical floor
+- the richer model must clear the predictive gate
 
-Use the **full visible DBE-KT22 attempt table** as the main discovery sample, keeping all linked KCs per item.
+### 2. Operational question-selection bridge
 
-Reason:
+Once a public learner model is supported, ask:
 
-- the project should use the full public dataset rather than discarding most multi-KC rows
-- dropping multi-KC items removes too much repeated same-skill structure for Models 2 and 3
-- the mainline should preserve all linked KCs rather than collapsing each item to a single KC by default
+- which learner model gives the best **question-selection behavior**?
+- can it pick next items at the desired difficulty for each learner?
 
-### Public analysis schema
+This is currently evaluated by **offline replay**, not by live experimentation.
 
-Main discovery columns:
+Operational rule:
 
-- `student_id`
-- `item_id`
-- `kc_ids`
-- `kc_count`
-- `correct`
-- `timestamp`
-- `attempt_id`
-- `trial_index_within_student`
-- `overall_opportunity`
-- `kc_opportunity_*` summaries derived from the long attempt-KC table
-- `kc_practice_feature_sum = sum(log1p(kc_opportunity_k))`
-- `practice_feature = kc_practice_feature_sum`
+- default deployment candidate: **Model 2**
+- richer challenger: **Model 3**
+- Model 3 is only preferred if it wins on policy-facing replay metrics or gives a calibration gain that matters to the chosen policy
 
-Implementation note:
+## Phase 1: public discovery and learner-model development
 
-- `practice_feature` may be retained as a compatibility alias, but the scientific signal is `kc_practice_feature`
+### Main public data representation
 
-Auxiliary columns to retain but not use in the main model ladder:
+Use the **full visible DBE-KT22 attempt table** and retain **all linked KCs per item**.
 
-- question difficulty
-- hint use
-- trust / confidence feedback
-- difficulty feedback
-- duration / time taken
-- answer changes
+Current operational branches:
 
-### Sensitivity analysis
+1. **explicit Q-matrix opportunity branch**
+   - KC structure enters the likelihood directly
+   - used to establish that Models 2 and 3 survive on the full dataset
 
-Before freezing Phase 1, run diagnostics around the operational full-dataset branch:
+2. **explicit Q-matrix PFA / R-PFA branch**
+   - retains the explicit Q-matrix structure
+   - replaces opportunity-only history with KC-specific prior wins and fails
+   - adds KC-opportunity-lag recency weighting for the operational R-PFA branch
+   - current best-yield predictive branch family
 
-- a **single-KC-only branch** for construct-clean interpretation
-- a **deterministic primary-KC branch** for one-KC-per-item collapse sensitivity
-- a **repeated-practice subset** to check whether thin student-KC histories are washing out slope estimation
+Sensitivity branches remain in the repo:
 
-Purpose:
+- single-KC-only
+- deterministic primary-KC
+- collapsed-feature multi-KC
+- fractional multi-KC
+- repeated-practice restrictive subset
 
-- check whether the full-dataset result depends entirely on how multi-KC items are handled
-- separate construct-clean sensitivity from signal-preserving operational analysis
+### Current Phase 1 results
 
-### Public model ladder
+#### Explicit Q-matrix ladder
 
-Fit the same cleaned discovery sample in order:
+- Model 1 log loss `0.545311`
+- Model 2 log loss `0.544366`
+- Model 3 log loss `0.543782`
 
-1. **Model 1**
-   - `correct ~ kc_practice_feature + (1 | student_id) + (1 | item_id)`
+Interpretation:
 
-2. **Model 2**
-   - `correct ~ kc_practice_feature + (1 + kc_practice_feature | student_id) + (1 | item_id)`
+- baseline heterogeneity is present
+- growth heterogeneity is supported
+- stability heterogeneity is also supported
 
-3. **Model 3**
-   - Model 2 plus latent learner-state deviation over time
-   - keep the current binned latent-state approximation if needed for tractability
-   - use KC-specific practice as the growth signal
+#### Best-yield branch family: explicit Q-matrix PFA / R-PFA
 
-### Phase 1 evidence families
+- plain PFA established that the main predictive gain came from improving the KC-history signal
+- the current operational mainline is now the **R-PFA tuning / fit branch**
+- the selected R-PFA alpha controls how strongly recent KC outcomes outweigh older ones
 
-Substantive evidence:
+### Current Phase 1 decision reading
 
-- learner intercept variance
-- learner slope variance
-- learner stability / volatility variance
-- posterior stability of those variance terms across reruns
-- descriptive evidence that early learner estimates relate to later outcomes
+Separate two conclusions clearly:
 
-Predictive evidence:
+1. **heterogeneity conclusion**
+   - full-data explicit Q-matrix evidence supports Model 2 and then Model 3
 
-- held-out log loss
-- Brier score
-- calibration intercept and slope
-- calibration curve
+2. **operational model choice**
+   - explicit Q-matrix R-PFA Model 2 is the default mainline model when predictive yield and downstream policy use matter most
+   - explicit Q-matrix R-PFA Model 3 is the uncertainty/stability challenger
 
-### Phase 1 decision rule
+That means Model 3 is still scientifically useful, but it is no longer the default answer to every operational question.
 
-Use **Variance + Prediction**.
+## Phase 1.5: offline next-question policy evaluation
 
-For added heterogeneity SD terms beyond Model 1, the default practical floor is:
+Because the end goal is user-specific question selection, the project now includes a narrow offline policy layer.
 
-- posterior SD above `0.03` on the logit scale
-- with the 94% HDI lower bound also above `0.03`
+### Current replay task
 
-Predictive gate for richer models:
+For each held-out student:
 
-- either held-out log loss improves
-- or log loss is no worse by more than `0.001`, while Brier improves and calibration slope moves closer to `1.0`
+1. update the student state after each observed attempt
+2. score candidate items with the fitted learner model
+3. apply a small modular policy family rather than one fixed target rule
 
-Stopping logic:
+Current v1 policy suite:
 
-- if Model 2 fails that rule, stop at Model 1
-- if Model 2 passes and Model 3 fails, stop at Model 2
-- if Model 3 passes, carry it forward as the richer structural model
+- balanced challenge
+- harder challenge
+- confidence-building
+- failure-aware remediation
+- spacing-aware review
 
-Important interpretation:
+This replay layer measures:
 
-- Model 1 is only the hurdle for asking whether growth or stability heterogeneity add anything real
-- if only Model 1 survives, do **not** treat Model 1 as the main scientific result
-- instead freeze the public dataset as a pilot / screening dataset for this question
+- target-difficulty control
+- band-hit rate
+- recommendation stability
+- remediation and review coverage
+- fallback behavior
 
-## Phase 2A: local structural replication
+It does **not** yet measure:
 
-### Local data assumption
+- causal learning gains
+- engagement effects with ground-truth labels
+- long-term retention
 
-The local sample must include usable skill / KC IDs or an equivalent concept layer.
+## Current focus
 
-### Local schema
+Until local data arrives, the repo should prioritize:
 
-Normalize the local dataset to:
+1. explicit Q-matrix R-PFA as the operational learner-model mainline
+2. Model 2 as the default policy model
+3. Model 3 as the richer challenger when stability or uncertainty matters
+4. offline policy comparisons such as:
+   - balanced target difficulty
+   - slightly harder challenge
+   - easier confidence-building
+   - failure-aware remediation
+   - spacing-aware review
+5. engagement-proxy work only through observable history and behavior proxies, not invented labels
 
-- `student_id`
-- `item_id`
-- `kc_id`
-- `correct`
-- `timestamp` or valid attempt order
-- `attempt_id`
-- `trial_index_within_student`
-- `overall_opportunity`
-- `kc_opportunity`
-- `kc_practice_feature`
+## Phase 2: currently paused
 
-### Local split
+### Phase 2A: local structural replication
 
-Use a **3-way student-wise split**:
+Still the correct long-term replication step:
 
-- local `train`
-- local `calibration`
-- untouched local `test`
+- rerun the local ladder up to the public-supported level
+- benchmark with Model 1
+- evaluate whether the richer structure replicates locally
 
-### Replication rule
+### Phase 2B: local warm-start
 
-Phase 2A reruns the nested ladder up to the public-supported level.
+Still the correct later application step:
 
-It only becomes the mainline next step if the public dataset supports Model 2 or Model 3 cleanly enough to justify a real heterogeneity replication question.
+- weak-prior local fit
+- public-informed fit
+- early-attempt comparison on held-out local students
 
-Examples:
+### Why it is paused
 
-- If public Phase 1 ends at Model 2:
-  - fit local Model 1 and local Model 2
-- If public Phase 1 ends at Model 3:
-  - fit local Models 1, 2, and 3
+- no local dataset is currently available in this workspace
+- the repo’s immediate value comes from getting the public learner model and offline policy logic right first
 
-This is the actual structural replication step.
+## Deliverables that now matter most
 
-## Phase 2B: local warm-start application
-
-Fit the same Phase 2A-supported structure again with public-informed priors or hyperparameters.
-
-Compare:
-
-1. weak-prior local chosen richer model
-2. public-informed chosen richer model
-
-Benchmark Model 1 only as a hurdle/baseline check alongside that richer-model comparison.
-
-So the general rule is:
-
-- Model 1 remains the hurdle benchmark
-- only a public-supported Model 2 or Model 3 activates the mainline replication and warm-start study
-
-## Primary outcome
-
-### Phase 1
-
-Heterogeneity variance terms plus non-degrading predictive fit.
-
-### Phase 2
-
-Primary:
-
-- student-averaged log loss over attempts `1-5`
-
-Secondary:
-
-- student-averaged log loss over attempts `1-10`
-- Brier score
-- calibration intercept and slope
-- overall performance after more attempts
-
-Sparse-data fallback:
-
-- if too few students reach 5 attempts, pre-specify a shorter primary window such as attempts `1-3`
-
-## Current implementation order
-
-1. Build the full-dataset multi-KC public discovery table.
-2. Fit Models 1 and 2 on that table.
-3. Fit Model 3 if Model 2 survives the sharpened `Variance + Prediction` rule on that operational branch.
-4. Run the deterministic primary-KC sensitivity branch.
-5. Run the single-KC sensitivity branch.
-6. Run the repeated-practice diagnostic branch.
-7. Normalize local data to the same KC-aware schema.
-8. Create the 3-way local student split.
-9. If the full-dataset branch supports Model 2 or Model 3 strongly enough for scientific continuation, run local structural replication.
-10. Then run the warm-start comparison.
-
-If the full-dataset branch fails to support Model 2 or Model 3, do not skip ahead to a Model 1-led Phase 2. Treat DBE as pilot groundwork and either redesign the public discovery analysis or replace the public dataset.
+- full-data KC-aware preprocessing
+- explicit Q-matrix fit/eval scripts
+- PFA / R-PFA fit/eval scripts
+- adaptive replay scripts
+- comparison notes for:
+  - heterogeneity ladder
+  - improvement trials
+  - R-PFA alpha tuning
+  - offline policy suite replay
+- a pivot note documenting what the project is focused on now

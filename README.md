@@ -1,187 +1,168 @@
-# Learner Heterogeneity and Warm-Start Project
+# Learner Heterogeneity and Adaptive Question Selection
 
-This repository is a small two-phase modelling project for trial-level learner-response data.
+This repository started as a public-data heterogeneity programme with conditional local replication and warm-start transfer.
 
-It is **not** a benchmark zoo and **not** a full personalised learning system.
+That framing is still in the repo, but the **current operational focus** has shifted:
 
-The framing is:
+1. use the **full visible DBE dataset**
+2. model multi-KC structure explicitly
+3. improve learner-state estimation with better history features
+4. test whether those learner models help with **offline next-question targeting**
 
-1. discover whether learners differ in baseline level, growth, and stability in public longitudinal data
-2. verify that structure in a new local sample
-3. test whether public-informed priors estimate those differences earlier than weak-prior local fitting
+This is still **not** a full live personalised learning system. It is the current offline bridge from heterogeneity modelling to user-specific question selection.
 
 Core docs:
 
 - [AGENTS.md](D:/model1_baseline_agent_bundle/AGENTS.md)
 - [PROJECT_PLAN.md](D:/model1_baseline_agent_bundle/PROJECT_PLAN.md)
 - [phase1_selection_memo.md](D:/model1_baseline_agent_bundle/reports/phase1_selection_memo.md)
-- [phase2_protocol.md](D:/model1_baseline_agent_bundle/reports/phase2_protocol.md)
+- [current_project_status.md](D:/model1_baseline_agent_bundle/reports/current_project_status.md)
 - [phase1_branch_guide.md](D:/model1_baseline_agent_bundle/reports/phase1_branch_guide.md)
+- [project_pivot_and_current_focus.md](D:/model1_baseline_agent_bundle/reports/project_pivot_and_current_focus.md)
+- [phase1_qmatrix_rpfa_tuning.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_tuning.md)
+- [phase1_qmatrix_rpfa_operational_selection.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_operational_selection.md)
+- [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)
 
-## Current state
+## Current focus
 
-Legacy public benchmarking materials are still present in the repo as development history.
+Until local data is available, the repo is focused on three linked questions:
 
-The decision-grade path now uses the **full visible DBE item set with all linked KCs retained** as the operational discovery branch.
+1. Do full-data KC-aware public models support learner heterogeneity beyond baseline level?
+2. Which public learner model gives the best **operational** fit once KC history is represented properly?
+3. Which learner model is better for **offline next-question targeting**?
 
-The local replication and warm-start scaffolding remains in the repo, but it is **conditional**. It is not the scientific next step unless the public discovery dataset supports Model 2 or Model 3 cleanly enough to justify a real heterogeneity replication question.
+Current answers:
 
-Implemented for the revised plan:
+- The full-data explicit Q-matrix ladder supports **Model 2** and then **Model 3**.
+- The best predictive yield came from switching from opportunity-only history to **PFA / R-PFA wins/fails history**.
+- The operational learner-model mainline is now the **explicit Q-matrix R-PFA branch** with selected `alpha = 0.9`.
+- The offline policy work now uses a **modular policy suite**, not only one fixed target-`0.7` replay.
+- On that branch, **R-PFA Model 2** remains the default policy model and **R-PFA Model 3** remains the richer challenger.
 
-- [preprocess_phase1_discovery.py](D:/model1_baseline_agent_bundle/src/preprocess_phase1_discovery.py)
-- [summarize_phase1_heterogeneity.py](D:/model1_baseline_agent_bundle/src/summarize_phase1_heterogeneity.py)
-- [preprocess_phase2_local.py](D:/model1_baseline_agent_bundle/src/preprocess_phase2_local.py)
-- [split_phase2_local.py](D:/model1_baseline_agent_bundle/src/split_phase2_local.py)
+## Current mainline results
 
-## Public discovery workflow
+### Explicit Q-matrix heterogeneity ladder
 
-Build the full-dataset multi-KC discovery table:
+Same held-out rows, one row per attempt, KC structure inside the likelihood:
+
+- Model 1 log loss: `0.545311`
+- Model 2 log loss: `0.544366`
+- Model 3 log loss: `0.543782`
+
+Interpretation:
+
+- baseline heterogeneity is present
+- growth heterogeneity is present
+- stability heterogeneity is also present
+
+Reference:
+
+- [phase1_multikc_qmatrix_comparison.md](D:/model1_baseline_agent_bundle/reports/phase1_multikc_qmatrix_comparison.md)
+
+### Best-yield improvement branch family: explicit Q-matrix PFA / R-PFA
+
+Replacing opportunity-only history with KC-specific prior wins and fails gave the largest improvement tried so far:
+
+- R-PFA Model 2, selected `alpha = 0.9`:
+  - log loss `0.541470`
+  - Brier `0.183001`
+  - AUC `0.764493`
+  - calibration slope `0.957899`
+- R-PFA Model 3, same `alpha = 0.9`:
+  - log loss `0.541660`
+  - Brier `0.183103`
+  - AUC `0.763996`
+  - calibration slope `0.972057`
+
+Interpretation:
+
+- the **history representation** was the main leverage point
+- the tie-broken operational alpha is `0.9`
+- R-PFA Model 2 is the best current operational predictive model
+- R-PFA Model 3 remains the richer uncertainty/stability challenger
+
+Reference:
+
+- [phase1_qmatrix_rpfa_tuning.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_tuning.md)
+- [phase1_qmatrix_rpfa_operational_selection.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_operational_selection.md)
+
+### Offline adaptive-policy replay
+
+Current replay design:
+
+- after each held-out attempt, score candidate items
+- compare a small modular policy family:
+  - balanced challenge
+  - harder challenge
+  - confidence-building
+  - failure-aware remediation
+  - spacing-aware review
+
+Current reading:
+
+- `balanced_challenge`: Model 2 and Model 3 are close, but Model 2 is more stable and has slightly better policy advantage over the actual historical next item.
+- `confidence_building`: Model 2 is better on target gap, policy advantage, and stability.
+- `failure_aware_remediation`: Model 2 is slightly better on target gap, band-hit rate, policy advantage, and stability.
+- `harder_challenge`: Model 3 has a tiny policy-advantage edge, but Model 2 is still better on target gap and stability.
+- `spacing_aware_review`: Model 3 has a tiny band-hit edge, but Model 2 is better on target gap, policy advantage, and stability.
+
+Interpretation:
+
+- Model 2 remains the default policy model
+- Model 3 changes recommendations materially, but those changes do not justify replacing Model 2 under the current replay suite
+- this is an **offline target-control / policy-behavior test**, not proof of causal learning gain
+
+Reference:
+
+- [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)
+
+## Public data workflow
+
+Build the full multi-KC tables:
 
 ```powershell
 py src/preprocess_phase1_multikc.py
 ```
 
-Current discovery sample:
-
-- `157,989` processed rows
-- `1,138` learners
-- `212` items
-- `93` represented KCs
-- `300,246` long attempt-KC rows
-
-Outputs:
+Main outputs:
 
 - [multikc_trials.csv](D:/model1_baseline_agent_bundle/data/processed/phase1_multikc/multikc_trials.csv)
 - [multikc_attempt_kc_long.csv](D:/model1_baseline_agent_bundle/data/processed/phase1_multikc/multikc_attempt_kc_long.csv)
 - [multikc_summary.json](D:/model1_baseline_agent_bundle/data/processed/phase1_multikc/multikc_summary.json)
 - [phase1_multikc_schema_note.md](D:/model1_baseline_agent_bundle/reports/phase1_multikc_schema_note.md)
+- [kc_history_feature_validation.md](D:/model1_baseline_agent_bundle/reports/kc_history_feature_validation.md)
 
-Fit the full-dataset discovery models:
+Current sample:
 
-```powershell
-py src/fit_model1.py --config config/phase1_multikc_model1_fit.json
-py src/evaluate_model1.py --config config/phase1_multikc_model1_evaluate.json
-py src/fit_model2.py --config config/phase1_multikc_model2_fit.json
-py src/evaluate_model2.py --config config/phase1_multikc_model2_evaluate.json
-py src/fit_model3.py --config config/phase1_multikc_model3_fit.json
-py src/evaluate_model3.py --config config/phase1_multikc_model3_evaluate.json
-```
+- `157,989` processed attempt rows
+- `1,138` learners
+- `212` items
+- `93` KCs
+- `300,246` attempt-KC rows
 
-Current discovery result:
+## Branch guide
 
-- Model 1 log loss: `0.546332`
-- Model 2 log loss: `0.545491`
-- Model 2 learner slope SD 94% HDI: `[0.042, 0.053]`
-- Model 3 log loss: `0.543726`
-- Model 3 Brier: `0.183892`
-- Model 3 calibration slope: `0.963244`
-- Model 3 latent state SD 94% HDI: `[0.4588, 0.5145]`
-
-Current reading:
-
-- the full-data multi-KC branch supports Model 2 and then Model 3
-- richer heterogeneity appears when the model is allowed to use the full repeated structure in DBE without collapsing each item to one KC
-- the remaining issue is robustness to alternative multi-KC handling, not lack of signal
-
-Branch naming guide:
+The repo now has several distinct public branches. Use the guide before reading any older report:
 
 - [phase1_branch_guide.md](D:/model1_baseline_agent_bundle/reports/phase1_branch_guide.md)
 
-Explicit Q-matrix comparison for Models 1 and 2:
+Key distinction:
 
-- [phase1_multikc_qmatrix_comparison.md](D:/model1_baseline_agent_bundle/reports/phase1_multikc_qmatrix_comparison.md)
+- `single-KC` is now only a restrictive sensitivity check
+- `explicit Q-matrix PFA / R-PFA` is the current operational modeling branch
 
-Single-KC-only analysis remains as a construct-clean sensitivity check:
+## Phase 2 status
 
-- [phase1_discovery_heterogeneity_summary.md](D:/model1_baseline_agent_bundle/reports/phase1_discovery_heterogeneity_summary.md)
+Phase 2 scaffolding remains in the repo, but **Phase 2 is on hold** because no local dataset is currently available in this workspace.
 
-That branch gives:
+What remains available:
 
-- Model 1 log loss: `0.5674`
-- Model 2 log loss: `0.5677`
-- Model 3 log loss: `0.5709`
+- [phase2_protocol.md](D:/model1_baseline_agent_bundle/reports/phase2_protocol.md)
+- [preprocess_phase2_local.py](D:/model1_baseline_agent_bundle/src/preprocess_phase2_local.py)
+- [split_phase2_local.py](D:/model1_baseline_agent_bundle/src/split_phase2_local.py)
 
-Current disciplined reading:
+Current practical priority is:
 
-- the **full-data multi-KC branch** is now the operational mainline
-- the **single-KC branch** is a restrictive sensitivity analysis that strips out much of the repeated same-skill structure
-- the repeated-practice redesign on the single-KC family is diagnostic, not the mainline decision path
-
-Current project reading:
-
-- the current full-dataset DBE result supports **Model 3**
-- the main scientific caveat is robustness across alternative multi-KC handling choices
-- the current next step is to strengthen that full-dataset branch, not to throw away data again
-
-Updated multi-KC sensitivity:
-
-- equal-split fractional KC exposure has now also been run on the same full dataset
-- fractional Model 2 log loss: `0.546311`
-- fractional Model 3 log loss: `0.543867`
-- fractional Model 3 Brier: `0.183941`
-- fractional Model 3 calibration slope: `0.957373`
-
-So the richer result survives a meaningful KC-allocation sensitivity. The remaining uncertainty is no longer “does the result disappear as soon as KC handling changes?” It is now about how much the effect size moves under alternative multi-KC constructions.
-
-A stronger repeated-practice redesign has also now been run:
-
-- [phase1_repeated_subset_results.md](D:/model1_baseline_agent_bundle/reports/phase1_repeated_subset_results.md)
-
-That redesign keeps only student-KC sequences with `>= 3` opportunities within the single-KC family.
-
-Result:
-
-- Model 1 log loss: `0.536827`
-- Model 2 log loss: `0.537510`
-- Model 2 learner slope SD 94% HDI: `[0.085, 0.160]`
-
-So the redesign shows why the single-KC family can wash out richer heterogeneity, but it does not replace the full-dataset mainline.
-
-Current rule:
-
-- added heterogeneity SD terms beyond Model 1 must clear a practical floor of `0.03`
-- the richer model must either improve log loss, or be no worse by more than `0.001` while Brier improves and calibration slope moves closer to `1.0`
-
-Current unresolved adjudication point:
-
-- how much the Model 3 full-data multi-KC gain moves across alternative KC-handling choices, not whether it vanishes entirely
-
-## Phase 2 scaffolding
-
-Normalize local data:
-
-```powershell
-py src/preprocess_phase2_local.py --config config/phase2_local_preprocess_template.json
-```
-
-Create the local 3-way student split:
-
-```powershell
-py src/split_phase2_local.py --config config/phase2_local_split_template.json
-```
-
-Phase 2A is now explicitly a replication ladder:
-
-- Model 1 is the hurdle benchmark
-- the richest public-supported model would advance as the primary structural model
-
-Under the current DBE result, the richest currently supported operational model family is **Model 3** on the full-data multi-KC branch.
-
-The Phase 2 protocol remains in the repo as conditional scaffolding for the case where:
-
-- a richer public model survives cleanly, or
-- a new discovery dataset replaces DBE as the main public source
-
-So the current main task is still public discovery adjudication, not a Model 1-led warm-start study.
-
-Primary outcome:
-
-- student-averaged log loss over attempts `1-5`
-
-Secondary:
-
-- student-averaged log loss over attempts `1-10`
-
-Sparse-data fallback:
-
-- if too few students reach 5 attempts, use a shorter primary window such as attempts `1-3`
+- strengthen public learner-state modeling
+- compare learner models under offline next-question policies
+- prepare the transfer path for when local data arrives

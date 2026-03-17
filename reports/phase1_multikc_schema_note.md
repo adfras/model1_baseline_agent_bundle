@@ -11,11 +11,19 @@ This note records the full-data multi-KC Phase 1 discovery table built from DBE-
 
 ## Practice construction
 
-- For each student-KC pair, `kc_opportunity` counts prior exposures before the current attempt.
-- For multi-KC items, the attempt contributes to every linked KC after the response.
+- KC update mode: `full_credit`
+- For each student-KC pair, `kc_opportunity` tracks prior exposure before the current attempt.
+- For multi-KC items, the attempt contributes to every linked KC after the response using the configured update rule.
 - The main model-facing practice term is:
   - `practice_feature = kc_practice_feature_sum`
   - where `kc_practice_feature_sum = sum(log1p(kc_opportunity_k))` across the attempt's linked KCs
+
+Current update rule summary:
+
+- KC increment per linked KC: `1.0 per linked KC`
+- Practice aggregation: `sum(log1p(kc_opportunity_k)) across linked KCs`
+- Recency decay alpha currently materialized in the long table: `0.9`
+- Due-review threshold for default long-table flags: `48.0` hours
 
 Additional summaries retained on each attempt:
 
@@ -50,6 +58,8 @@ Additional summaries retained on each attempt:
 
 - KC opportunity monotone within student-KC: `True`
 - Chronology violations after sorting: `0`
+- `alpha = 1.0` decays match cumulative prior success counts: `True`
+- `alpha = 1.0` decays match cumulative prior failure counts: `True`
 
 ## Held-out profile
 

@@ -23,6 +23,7 @@ Stay inside these boundaries unless the user explicitly expands scope:
 - Calibration and log-score matter more than raw accuracy
 - The first paper is about heterogeneity discovery, replication, and transfer
 - This is not a full personalised learning system
+- Offline next-question policy replay is allowed as a bridge task when the user explicitly wants to explore question selection without new local data
 
 ## Phase structure
 
@@ -115,6 +116,12 @@ Use the matching skill based on the task:
 - Collapse back to one row per attempt for the current model ladder using an additive multi-KC practice signal:
   - `kc_opportunity` tracked separately for each `student_id x kc_id`
   - `practice_feature = sum(log1p(kc_opportunity_k))` across the attempt's linked KCs
+- For the current **operational** learner-model branch, keep the explicit multi-KC representation and use **Q-matrix-aware PFA / R-PFA history features**:
+  - KC-specific prior wins
+  - KC-specific prior failures
+  - when recency is enabled, KC-opportunity-lag-weighted prior wins and failures
+- Keep wall-clock time out of the R-PFA history features themselves.
+- Use timestamps only for spacing / review eligibility in offline policy replay.
 - Keep single-KC-only and deterministic primary-KC branches as sensitivity analyses, not as the default mainline branch.
 - For Models 1 and 2, exclude same-trial process variables from the main model.
 - For Model 3, add only latent stability/state terms; do not convert the project into a same-trial behaviour-classification task.
@@ -210,6 +217,29 @@ Unless the user asks otherwise, produce:
 - If Model 3 passes and remains numerically stable, carry it forward as the richer public model family.
 - If only Model 1 survives on that full-dataset branch, the public dataset is a pilot for this question, not the basis for a Model 1-led Phase 2.
 - Only a public-supported Model 2 or Model 3 can activate the main Phase 2 scientific path.
+- Keep the **scientific heterogeneity ladder** separate from the **operational policy model**:
+  - scientific conclusion comes from the explicit Q-matrix heterogeneity ladder
+  - operational learner-model choice comes from the explicit Q-matrix PFA / R-PFA branch
+- Default operational rule:
+  - Model 2 is the default policy model
+  - Model 3 is only preferred if it wins on the policy-facing replay metrics or gives a calibration benefit that matters to the chosen policy
+
+## Offline policy replay
+
+When the user explicitly wants question-selection work before local data exists:
+
+- use the fitted learner model only as a **state estimator / probability scorer**
+- compare a small family of modular policies, not one monolithic optimizer
+- keep claims limited to **offline target-control / policy-behavior evaluation**
+- do not claim causal learning gains without suitable logging propensities or randomized data
+
+Current default v1 policy suite:
+
+- `balanced_challenge`
+- `harder_challenge`
+- `confidence_building`
+- `failure_aware_remediation`
+- `spacing_aware_review`
 
 ## Preferred stack
 
@@ -221,7 +251,8 @@ Unless the user asks otherwise, produce:
 
 - Keep implementation simple, inspectable, and reproducible.
 - Make grounded assumptions, document them briefly, and keep moving.
-- Do not expand into BKT, DKT, RNNs, transformers, adaptive policy learning, or full personalised learning unless the user explicitly changes scope.
+- Do not expand into BKT, DKT, RNNs, transformers, or a live personalised learning system unless the user explicitly changes scope.
+- If the user explicitly shifts toward question selection, keep it to offline replay and policy comparison using the fitted learner models rather than inventing a full intervention framework.
 - Preserve the distinction between:
   - **Phase 1:** public heterogeneity discovery
   - **Phase 2A:** conditional local structural replication

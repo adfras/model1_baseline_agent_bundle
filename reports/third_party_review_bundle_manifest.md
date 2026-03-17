@@ -5,17 +5,29 @@ This bundle is intended for external review of the current modelling workspace s
 ## Included
 
 - project contract and plan
+- the new pivot note describing what the project is focused on now
 - model definitions and shared utilities
 - all repository `src/*.py` scripts
 - all repository `config/*.json` configs
 - internal run notes and comparison reports
-- the revised Phase 1 discovery pivot:
-  - full-dataset primary-KC preprocessing
-  - full-dataset Model 1 / Model 2 / Model 3 discovery reruns
+- the revised public-data model-development path:
+  - full-dataset multi-KC preprocessing
+  - collapsed-feature multi-KC reruns
+  - explicit Q-matrix reruns for Models 1 / 2 / 3
+  - targeted explicit-Q improvement trials:
+    - PFA-style wins/fails history
+    - R-PFA alpha tuning
+    - fractional KC-credit sensitivity
+    - finer Model 3 state bins
+  - fractional multi-KC sensitivity reruns on the same rows and split
   - single-KC sensitivity reruns
-  - branch adjudication note comparing the primary and sensitivity paths
-  - heterogeneity summary scaffolding
-- the revised Phase 2 scaffolding:
+  - branch guide and historical branch adjudication notes
+- the new offline adaptive-policy work:
+  - replay configs for R-PFA Model 2 and Model 3
+  - modular policy-suite comparison note
+  - policy summary outputs
+- the KC-history feature validation note for recency and due-review fields
+- the dormant Phase 2 scaffolding:
   - local schema normalization template
   - 3-way student split template
   - transfer protocol note
@@ -40,13 +52,19 @@ This bundle is intended for external review of the current modelling workspace s
 ## Important context
 
 - The bundle reflects the current workspace state, not only the last pushed commit.
-- The repo has been repivoted from a public benchmark race to a heterogeneity-discovery and local-transfer project.
-- The older Track A / Track B public materials are still present as development history.
-- The operational decision-grade public path now uses the full visible DBE item set with deterministic primary-KC assignment.
-- The full-dataset primary-KC branch currently supports Model 3.
-- The single-KC branch currently stops at Model 1 and is treated as a construct-clean sensitivity analysis.
-- Phase 1 is now fully ladder-complete on both branches.
-- Model 1 is now treated only as the hurdle benchmark, not the Phase 2 scientific target.
-- DBE currently shows richer heterogeneity on the full dataset, but the result remains sensitive to multi-KC handling.
-- The public carry-forward decision now depends on whether that full-dataset Model 3 result is robust enough to justify Phase 2.
-- Phase 2 local fitting is scaffolded but not yet run, because no local dataset is bundled here.
+- The repo originally centered heterogeneity discovery and conditional local transfer.
+- With no local dataset currently available in the workspace, the practical focus has shifted to:
+  - full-data public learner-model development
+  - explicit Q-matrix KC-aware modeling
+  - better KC-history features
+  - offline next-question policy replay
+- The full-data explicit Q-matrix ladder supports Model 2 and then Model 3.
+- The strongest predictive improvement came from **PFA / R-PFA wins/fails history**.
+- The selected operational R-PFA alpha is `0.9`.
+- On that branch, **R-PFA Model 2** beats **R-PFA Model 3** on log loss, Brier, and AUC, while **R-PFA Model 3** improves calibration slope.
+- On the modular offline policy suite, **R-PFA Model 2** remains the default next-question policy model.
+- The single-KC branch still collapses to Model 1 and is treated as a restrictive sensitivity analysis.
+- The repo now distinguishes clearly between:
+  - the richest supported heterogeneity model
+  - the best current operational model for question targeting
+- Phase 2 local fitting is scaffolded but not run, because no local dataset is bundled here.
