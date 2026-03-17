@@ -1,141 +1,184 @@
 # Current Project Status
 
-This note maps the current repository state onto the newer two-phase project plan.
+This note records the repo state after switching the operational Phase 1 path to a full-data multi-KC design.
 
-## Repo Contract
+For the branch names used below, see:
 
-The repo now follows:
+- [phase1_branch_guide.md](D:/model1_baseline_agent_bundle/reports/phase1_branch_guide.md)
 
-- [AGENTS.md](/D:/model1_baseline_agent_bundle/AGENTS.md)
-- [PROJECT_PLAN.md](/D:/model1_baseline_agent_bundle/PROJECT_PLAN.md)
+## Framing
 
-That project contract is broader than the original repo build-out. The codebase today implements Model 1 across both Phase 1 tracks, but it does not yet implement Models 2 and 3 or the Phase 2 transfer work.
+The project is now:
 
-## Implemented Now
+1. public heterogeneity discovery
+2. conditional local structural replication
+3. conditional local warm-start application
 
-### Public dataset and schema work
+The main public discovery path is no longer the single-KC branch or the older primary-KC collapse.
 
-- DBE-KT22 retrieval via [fetch_dbe_kt22.py](/D:/model1_baseline_agent_bundle/src/fetch_dbe_kt22.py)
-- schema audit via [model1_schema_audit.md](/D:/model1_baseline_agent_bundle/reports/model1_schema_audit.md)
-- deterministic preprocessing and within-learner chronological splits via [preprocess_model1.py](/D:/model1_baseline_agent_bundle/src/preprocess_model1.py)
+## Implemented now
 
-### Phase 1 Track A: seen-learner forward prediction
+### Operational Phase 1 discovery path
 
-Implemented for Model 1:
+- multi-KC full-data preprocessing:
+  - [preprocess_phase1_multikc.py](D:/model1_baseline_agent_bundle/src/preprocess_phase1_multikc.py)
+  - [phase1_multikc_preprocess.json](D:/model1_baseline_agent_bundle/config/phase1_multikc_preprocess.json)
+- full-data multi-KC fit/eval configs for Models 1, 2, and 3
+- heterogeneity summary scaffold:
+  - [summarize_phase1_heterogeneity.py](D:/model1_baseline_agent_bundle/src/summarize_phase1_heterogeneity.py)
+  - [phase1_multikc_heterogeneity_summary.json](D:/model1_baseline_agent_bundle/config/phase1_multikc_heterogeneity_summary.json)
 
-- clean trial table
-- within-learner `80/20` chronological split
-- VI fit/evaluation
-- multiple NUTS validation runs
+### Sensitivity / diagnostic branches still present
 
-Current processed sample:
+- deterministic primary-KC branch
+- single-KC-only branch
+- repeated-practice subset on the restrictive single-KC family
+- explicit Q-matrix branch for Models 1 and 2
 
-- `157,989` processed rows
-- `1,138` eligible learners
+### Phase 2 scaffolding
+
+- [preprocess_phase2_local.py](D:/model1_baseline_agent_bundle/src/preprocess_phase2_local.py)
+- [split_phase2_local.py](D:/model1_baseline_agent_bundle/src/split_phase2_local.py)
+- [phase2_protocol.md](D:/model1_baseline_agent_bundle/reports/phase2_protocol.md)
+
+## Operational discovery sample
+
+The new multi-KC preprocessing has been run successfully.
+
+Current sample:
+
+- `157,989` processed attempt rows
+- `1,138` learners
+- `212` items
+- `93` represented KCs
+- `300,246` long attempt-KC rows
+- mean KC count per attempt `1.896`
 - `125,877` train rows
 - `32,112` test rows
-- `0` unseen-item test rows in the primary current split
-
-### Phase 1 Track B: unseen-public-student initialization
-
-Implemented for Model 1:
-
-- deterministic student-wise public train / validation / test split via [split_model1_track_b.py](/D:/model1_baseline_agent_bundle/src/split_model1_track_b.py)
-- primary evaluation restricted to items seen in the public training students
-- VI fit on public train students only
-- sequential evaluation on held-out public validation and test students with new-group sampling enabled for unseen learners
-
-Current Track B sample:
-
-- `796` train students
-- `170` validation students
-- `172` test students
-- `110,434` train rows
-- `22,891` validation rows
-- `24,664` test rows
-- `0` unseen-item validation rows in the primary evaluation
+- `0` chronology violations
 - `0` unseen-item test rows in the primary evaluation
 
-### Model 1 results already available
+See:
 
-Default VI run in [outputs/model1](/D:/model1_baseline_agent_bundle/outputs/model1):
+- [multikc_summary.json](D:/model1_baseline_agent_bundle/data/processed/phase1_multikc/multikc_summary.json)
+- [phase1_multikc_schema_note.md](D:/model1_baseline_agent_bundle/reports/phase1_multikc_schema_note.md)
+- [phase1_multikc_heterogeneity_summary.md](D:/model1_baseline_agent_bundle/reports/phase1_multikc_heterogeneity_summary.md)
 
-- log loss: `0.5446`
-- Brier: `0.1841`
-- accuracy: `0.7153`
-- AUC: `0.7609`
-- calibration intercept: `0.0670`
-- calibration slope: `0.9253`
+## Operational full-data multi-KC results
 
-Pilot MCMC run in [outputs/model1_mcmc](/D:/model1_baseline_agent_bundle/outputs/model1_mcmc):
+### Model 1
 
-- `2` chains, `500/500`
-- useful as an early validation pass only
+- log loss `0.546332`
+- Brier `0.184800`
+- calibration slope `0.926549`
+- learner intercept SD mean `0.569`
+- learner intercept SD 94% HDI `[0.538, 0.598]`
 
-Fuller MCMC run in [outputs/model1_mcmc_full](/D:/model1_baseline_agent_bundle/outputs/model1_mcmc_full):
+### Model 2
 
-- `4` chains, `1000/1000`, `target_accept 0.95`
-- divergences: `0`
-- max `R-hat`: `1.05`
-- min bulk ESS: `74`
-
-Strict MCMC run in [outputs/model1_mcmc_strict](/D:/model1_baseline_agent_bundle/outputs/model1_mcmc_strict):
-
-- `4` chains, `2000/2000`, `target_accept 0.97`
-- divergences: `0`
-- max `R-hat`: `1.01`
-- min bulk ESS: `204`
-- min tail ESS: `619`
-
-Strict MCMC held-out evaluation in [outputs/model1_mcmc_strict](/D:/model1_baseline_agent_bundle/outputs/model1_mcmc_strict):
-
-- log loss: `0.5455`
-- Brier: `0.1845`
-- accuracy: `0.7160`
-- AUC: `0.7607`
-- calibration intercept: `-0.0335`
-- calibration slope: `0.9128`
-
-Track B VI run in [outputs/model1_track_b](/D:/model1_baseline_agent_bundle/outputs/model1_track_b):
-
-- fit rows: `110,434`
-- validation log loss: `0.4357`
-- validation Brier: `0.1402`
-- validation accuracy: `0.7982`
-- validation AUC: `0.7965`
-- test log loss: `0.4538`
-- test Brier: `0.1478`
-- test accuracy: `0.7855`
-- test AUC: `0.7892`
+- log loss `0.545491`
+- Brier `0.184503`
+- calibration slope `0.940928`
+- learner slope SD mean `0.048`
+- learner slope SD 94% HDI `[0.042, 0.053]`
 
 Interpretation:
 
-- Model 1 is implemented and working.
-- The stricter MCMC run is the current best posterior fit for Track A.
-- Model 1 predictive behavior is stable across VI and MCMC in Track A.
-- Track B is now implemented as the public unseen-student baseline.
+- growth heterogeneity survives on the operational multi-KC branch
+- the slope variance clears the practical floor
+- Model 2 clears the predictive gate relative to Model 1
 
-## Added Project-Spec Assets
+### Model 3
 
-The full project bundle has been merged into the repo:
+- log loss `0.543726`
+- Brier `0.183892`
+- calibration slope `0.963244`
+- learner slope SD mean `0.0485`
+- learner slope SD 94% HDI `[0.0421, 0.0541]`
+- latent state SD mean `0.4860`
+- latent state SD 94% HDI `[0.4588, 0.5145]`
+- `rho` mean `0.1180`
+- `rho` 94% HDI `[0.0867, 0.1474]`
 
-- [PROJECT_PLAN.md](/D:/model1_baseline_agent_bundle/PROJECT_PLAN.md)
-- [model2-random-slope-binary-logistic](/D:/model1_baseline_agent_bundle/.agents/skills/model2-random-slope-binary-logistic/SKILL.md)
-- [model3-dynamic-volatility-binary-logistic](/D:/model1_baseline_agent_bundle/.agents/skills/model3-dynamic-volatility-binary-logistic/SKILL.md)
-- [phase2-transfer-warm-start](/D:/model1_baseline_agent_bundle/.agents/skills/phase2-transfer-warm-start/SKILL.md)
+Interpretation:
 
-## Not Implemented Yet
+- the added stability term is clearly non-zero
+- Model 3 improves over Model 2 on the operational branch
+- the current operational full-data branch supports **Model 3**
 
-The new project plan includes work that the current repo does not yet implement:
+## Sensitivity / diagnostic reading
 
-- Model 2 fit/evaluation code
-- Model 3 fit/evaluation code
-- Phase 2 local-data harmonization
-- Phase 2 weak-prior versus public-informed warm-start comparison
+### Fractional multi-KC sensitivity
 
-## Recommended Next Order
+A stronger sensitivity check has now been run on the same full dataset:
 
-1. Treat Model 1 as complete across Track A and Track B.
-2. Implement Model 2 next and compare it against Model 1 on the same public holdout rows.
-3. Only implement Model 3 if Model 2 clearly earns the extra complexity.
-4. Start Phase 2 transfer only after the Phase 1 model family is frozen.
+- same rows
+- same split
+- same model ladder
+- different KC allocation rule: each multi-KC attempt contributes `1 / kc_count` exposure to each linked KC instead of full credit to each linked KC
+
+Result:
+
+- fractional Model 1 log loss `0.547029`
+- fractional Model 2 log loss `0.546311`
+- fractional Model 2 learner slope SD 94% HDI `[0.053, 0.069]`
+- fractional Model 3 log loss `0.543867`
+- fractional Model 3 Brier `0.183941`
+- fractional Model 3 calibration slope `0.957373`
+- fractional Model 3 latent state SD 94% HDI `[0.4559, 0.5113]`
+
+Interpretation:
+
+- the richer result survives a meaningful multi-KC allocation sensitivity
+- Model 2 still survives
+- Model 3 still improves over Model 2
+- the robustness question is now about effect size movement across KC-handling rules, not about total collapse back to Model 1
+
+### Explicit Q-matrix branch
+
+The explicit Q-matrix branch keeps the same full multi-KC sample but moves KC structure into the likelihood instead of collapsing it to one scalar practice feature before fitting.
+
+Current results:
+
+- explicit Q-matrix Model 1 log loss `0.545311`
+- explicit Q-matrix Model 2 log loss `0.544366`
+- explicit Q-matrix Model 2 learner slope SD 94% HDI `[0.040, 0.051]`
+
+Interpretation:
+
+- Model 2 beats Model 1 on the same held-out rows under an explicit KC parameterization
+- this strengthens the substantive case for growth heterogeneity on the full dataset
+
+See:
+
+- [phase1_multikc_qmatrix_comparison.md](D:/model1_baseline_agent_bundle/reports/phase1_multikc_qmatrix_comparison.md)
+
+### Single-KC branch
+
+The construct-clean single-KC branch still collapses to Model 1.
+
+That branch is now interpreted as a sensitivity result, not the controlling mainline.
+
+### Deterministic primary-KC branch
+
+The older one-KC-per-item collapse also supported richer models, but it has now been superseded by the better-supported multi-KC operational branch.
+
+### Repeated-practice subset
+
+The repeated-practice redesign on the restrictive single-KC family strengthens the slope signal but still does not beat Model 1 on that restrictive family.
+
+## Current scientific reading
+
+- using the full dataset and all linked KCs changes the answer materially
+- Model 2 and then Model 3 survive on the operational branch
+- a meaningful multi-KC sensitivity still supports Models 2 and 3
+- the remaining public-science task is robustness of effect size and interpretation across KC-handling rules, not whether richer heterogeneity exists at all on the full dataset
+
+## Phase 2 status
+
+Phase 2 remains conditional, but the current richer public-supported model family is now **Model 3** on the operational multi-KC branch.
+
+What still depends on further adjudication:
+
+- whether the multi-KC result is robust enough across alternative KC-handling schemes
+- whether that robustness is strong enough to justify carrying Model 3 into local replication and warm-start
