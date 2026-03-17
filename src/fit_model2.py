@@ -6,6 +6,7 @@ import time
 from pathlib import Path
 
 import arviz as az
+import numpy as np
 import pandas as pd
 
 from model1_common import ensure_parent, load_json, load_trials, prepend_compiler_to_path
@@ -44,6 +45,54 @@ def maybe_write_student_slope_summary(
     return str(output_path)
 
 
+def summarize_vi_history(losses: list[float]) -> dict[str, float | int | None]:
+    arr = np.asarray(losses, dtype="float64")
+    if arr.size == 0:
+        return {
+            "vi_loss_initial": None,
+            "vi_loss_final": None,
+            "vi_loss_best": None,
+            "vi_best_iteration": None,
+            "vi_relative_improvement": None,
+            "vi_tail_mean": None,
+            "vi_tail_sd": None,
+            "vi_prev_tail_mean": None,
+            "vi_tail_relative_change": None,
+        }
+
+    tail = min(500, arr.size)
+    tail_mean = float(arr[-tail:].mean())
+    tail_sd = float(arr[-tail:].std(ddof=1)) if tail > 1 else 0.0
+
+    prev_tail_mean = None
+    tail_relative_change = None
+    if arr.size >= 2 * tail:
+        prev = arr[-2 * tail : -tail]
+        prev_tail_mean = float(prev.mean())
+        if prev_tail_mean != 0.0:
+            tail_relative_change = float((tail_mean - prev_tail_mean) / abs(prev_tail_mean))
+
+    initial = float(arr[0])
+    final = float(arr[-1])
+    best_index = int(arr.argmin())
+    best_loss = float(arr[best_index])
+    relative_improvement = None
+    if initial != 0.0:
+        relative_improvement = float((initial - final) / abs(initial))
+
+    return {
+        "vi_loss_initial": initial,
+        "vi_loss_final": final,
+        "vi_loss_best": best_loss,
+        "vi_best_iteration": best_index + 1,
+        "vi_relative_improvement": relative_improvement,
+        "vi_tail_mean": tail_mean,
+        "vi_tail_sd": tail_sd,
+        "vi_prev_tail_mean": prev_tail_mean,
+        "vi_tail_relative_change": tail_relative_change,
+    }
+
+
 def main() -> int:
     args = parse_args()
     config = load_json(args.config)
@@ -79,12 +128,20 @@ def main() -> int:
         vi_history_path = Path(config["vi_history_path"])
         ensure_parent(vi_history_path)
         vi_history.to_csv(vi_history_path, index=False)
+        vi_diagnostics = summarize_vi_history([float(value) for value in approx.hist])
+        diagnostics_path_value = config.get("diagnostics_summary_path")
+        if diagnostics_path_value is not None:
+            diagnostics_summary = pd.DataFrame(
+                [{"metric": key, "value": value} for key, value in vi_diagnostics.items()]
+            )
+            diagnostics_summary_path = Path(diagnostics_path_value)
+            ensure_parent(diagnostics_summary_path)
+            diagnostics_summary.to_csv(diagnostics_summary_path, index=False)
         fit_extra = {
             "vi_iterations": int(config["vi_iterations"]),
             "posterior_draws": int(config["posterior_draws"]),
-            "vi_loss_initial": float(approx.hist[0]) if len(approx.hist) else None,
-            "vi_loss_final": float(approx.hist[-1]) if len(approx.hist) else None,
             "vi_history_path": str(vi_history_path),
+            **vi_diagnostics,
         }
     else:
         idata = model.fit(
@@ -96,6 +153,7 @@ def main() -> int:
             random_seed=random_seed,
             target_accept=float(config["target_accept"]),
         )
+        diagnostics_path_value = config.get("diagnostics_summary_path")
         fit_extra = {
             "draws": int(config["draws"]),
             "tune": int(config["tune"]),
@@ -115,9 +173,8 @@ def main() -> int:
     ensure_parent(posterior_summary_path)
     posterior_summary.to_csv(posterior_summary_path)
 
-    diagnostics_path_value = config.get("diagnostics_summary_path")
     diagnostics_summary = None
-    if diagnostics_path_value is not None:
+    if inference_method != "vi" and diagnostics_path_value is not None:
         diagnostics_summary = az.summary(idata, kind="diagnostics")
         diagnostics_summary_path = Path(diagnostics_path_value)
         ensure_parent(diagnostics_summary_path)

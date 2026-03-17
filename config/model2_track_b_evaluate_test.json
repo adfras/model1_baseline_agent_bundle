@@ -1,0 +1,15 @@
+{
+  "processed_trials_path": "data/processed/model1_track_b/learner_trials.csv",
+  "idata_path": "outputs/model2_track_b/model2_idata.nc",
+  "overall_metrics_path": "outputs/model2_track_b/model2_test_overall_metrics.csv",
+  "learner_metrics_path": "outputs/model2_track_b/model2_test_learner_metrics.csv",
+  "calibration_table_path": "outputs/model2_track_b/model2_test_calibration_table.csv",
+  "calibration_figure_path": "outputs/model2_track_b/figures/model2_test_calibration.png",
+  "evaluation_summary_path": "outputs/model2_track_b/model2_test_evaluation_summary.json",
+  "compiler_bin_dir": "C:\\rtools43\\x86_64-w64-mingw32.static.posix\\bin",
+  "evaluate_split": "test",
+  "primary_eval_only": true,
+  "include_group_specific": true,
+  "sample_new_groups": true,
+  "prediction_batch_size": 1000
+}

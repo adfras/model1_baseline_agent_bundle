@@ -1,0 +1,20 @@
+{
+  "processed_trials_path": "data/processed/model1_track_b/learner_trials.csv",
+  "idata_path": "outputs/model2_track_b_fullrank/model2_idata.nc",
+  "fit_summary_path": "outputs/model2_track_b_fullrank/model2_fit_summary.json",
+  "posterior_summary_path": "outputs/model2_track_b_fullrank/model2_posterior_summary.csv",
+  "student_slope_summary_path": "outputs/model2_track_b_fullrank/model2_student_slope_summary.csv",
+  "vi_history_path": "outputs/model2_track_b_fullrank/model2_vi_history.csv",
+  "diagnostics_summary_path": "outputs/model2_track_b_fullrank/model2_diagnostics_summary.csv",
+  "compiler_bin_dir": "C:\\rtools43\\x86_64-w64-mingw32.static.posix\\bin",
+  "inference_method": "vi",
+  "vi_method": "fullrank_advi",
+  "vi_iterations": 20000,
+  "posterior_draws": 1000,
+  "draws": 1000,
+  "tune": 1000,
+  "chains": 2,
+  "cores": 1,
+  "random_seed": 20260325,
+  "target_accept": 0.9
+}

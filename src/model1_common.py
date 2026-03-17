@@ -37,9 +37,15 @@ def load_trials(path: Path) -> pd.DataFrame:
     df = pd.read_csv(path, parse_dates=["timestamp"])
     df["student_id"] = df["student_id"].astype("string")
     df["item_id"] = df["item_id"].astype("string")
-    df["split"] = df["split"].astype("string")
+    if "kc_id" in df.columns:
+        df["kc_id"] = df["kc_id"].astype("string")
+    if "split" in df.columns:
+        df["split"] = df["split"].astype("string")
     df["correct"] = df["correct"].astype("int8")
     df["practice_feature"] = df["practice_feature"].astype("float64")
+    for column in ["kc_practice_feature", "duration_seconds"]:
+        if column in df.columns:
+            df[column] = df[column].astype("float64")
     for column in [
         "item_seen_in_train",
         "new_item_in_test",
@@ -49,6 +55,7 @@ def load_trials(path: Path) -> pd.DataFrame:
         "student_total_attempts",
         "trial_index_within_student",
         "overall_opportunity",
+        "kc_opportunity",
     ]:
         if column in df.columns:
             df[column] = df[column].astype("int64")

@@ -1,0 +1,16 @@
+{
+  "processed_trials_path": "data/processed/model1/learner_trials.csv",
+  "posterior_draws_path": "outputs/model3/model3_posterior_draws.npz",
+  "fit_summary_path": "outputs/model3/model3_fit_summary.json",
+  "structural_summary_path": "outputs/model3/model3_structural_summary.csv",
+  "volatility_summary_path": "outputs/model3/model3_volatility_summary.csv",
+  "diagnostics_summary_path": "outputs/model3/model3_diagnostics_summary.csv",
+  "vi_history_path": "outputs/model3/model3_vi_history.csv",
+  "compiler_bin_dir": "C:\\rtools43\\x86_64-w64-mingw32.static.posix\\bin",
+  "inference_method": "vi",
+  "vi_method": "advi",
+  "vi_iterations": 20000,
+  "posterior_draws": 500,
+  "random_seed": 20260321,
+  "state_bin_width": 10
+}

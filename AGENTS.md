@@ -1,113 +1,191 @@
 # AGENTS.md
 
 ## Mission
-This repository exists to run a **two-phase, small-scope modelling programme** for trial-level learner response data.
 
-The project is deliberately **not** a full personalised learning system.
-It has two aims only:
+This repository runs a small modelling programme for binary learner-response data.
 
-1. **Phase 1:** develop and compare three sequential models on a public online-learning dataset.
-2. **Phase 2:** take the chosen Phase 1 model and use it as a **warm start** for a new local sample, so prediction for new local students does not begin from a blank slate.
+The project is framed around **heterogeneity discovery first, then conditional replication and warm-start transfer**.
+
+The core questions are:
+
+1. **Phase 1:** Do learners differ in baseline level, growth, and stability in public longitudinal data?
+2. **Phase 2A:** Only if Phase 1 supports Model 2 or Model 3 cleanly, do those same forms of heterogeneity replicate in a new local sample?
+3. **Phase 2B:** Only after that replication step, do public-informed priors estimate those learner differences earlier than weak-prior local fitting?
 
 ## Project scope
+
 Stay inside these boundaries unless the user explicitly expands scope:
-- Binary outcome only: `correct` / `incorrect`.
-- Trial-level learner-response data with preserved chronology.
-- Public-data development first; local-data transfer second.
-- Probabilistic next-attempt prediction is the primary outcome.
-- Calibration and log-score matter more than raw accuracy.
-- The first paper is about **forecasting and transfer**, not adaptive tutoring, rule-change control, or full personalised learning.
+
+- Binary outcome only: `correct` / `incorrect`
+- Trial-level learner-response data with preserved chronology
+- Public-data discovery first
+- Local replication and warm-start are conditional, not automatic
+- Calibration and log-score matter more than raw accuracy
+- The first paper is about heterogeneity discovery, replication, and transfer
+- This is not a full personalised learning system
 
 ## Phase structure
 
-### Phase 1: public-data model development
-Fit the following model ladder in order:
+### Phase 1: public heterogeneity discovery
 
-1. **Model 1: baseline hierarchical logistic**
+Treat the public dataset as development and discovery data.
+
+The model ladder is a sequence of nested heterogeneity tests:
+
+1. **Model 1: level heterogeneity**
    - learner random intercept
    - item random intercept
-   - one shared practice term
+   - one shared KC-specific practice term
 
-2. **Model 2: random-slope learner-growth model**
-   - Model 1 plus learner-specific practice slopes
-   - separates baseline proficiency from learning rate
+2. **Model 2: growth heterogeneity**
+   - Model 1 plus learner-specific KC-practice slopes
 
-3. **Model 3: dynamic learner-volatility model**
-   - Model 2 plus latent learner state deviations over time
+3. **Model 3: stability heterogeneity**
+   - Model 2 plus latent learner-state deviations over time
    - learner-specific latent volatility
-   - used to test whether instability improves probabilistic forecasts beyond Model 2
 
-### Phase 2: public-to-local transfer
-- Freeze the Phase 1 model family after comparison.
-- Transfer the **model structure** and **public-learned hyperparameters/priors** to the local dataset.
-- Compare:
-  - a **weak-prior local fit** that starts nearly from scratch
-  - a **public-informed warm-start fit** using Phase 1 priors
-- Evaluate only on **held-out local students**.
-- Focus especially on **early local attempts**.
+Interpretation:
+
+- If Model 2 adds a practically non-trivial learner slope variance without failing the predictive gate, growth heterogeneity is present.
+- If Model 3 adds a practically non-trivial learner stability variance without failing the predictive gate, stability heterogeneity is present.
+- If only Model 1 survives, learners differ mainly in baseline level, and the public dataset has not given a stable answer to the main scientific question.
+
+Model 1 is therefore a **hurdle model**, not the scientific endpoint.
+
+### Pilot rule for the public dataset
+
+If only Model 1 survives on the **full-dataset** public discovery dataset:
+
+- freeze that dataset as a **pilot / screening dataset**
+- do **not** treat Model 1 as the Phase 2 scientific target
+- do **not** move to a warm-start study led only by Model 1
+- either redesign the public discovery analysis to target Model 2 cleanly
+- or replace the public dataset for the main discovery question
+
+### Phase 2A: local structural replication
+
+Phase 2A is a real replication step, not a single-model refit.
+
+It is only activated if Phase 1 supports **Model 2 or Model 3** cleanly enough to justify a real heterogeneity replication question.
+
+Replication rule:
+
+- Model 1 always advances as the benchmark.
+- The richest Phase 1-supported model advances as the primary structural model.
+- The local replication ladder must therefore rerun the nested models up to the public-supported level.
+
+Examples:
+
+- If public Phase 1 ends at Model 2:
+  - fit local Model 1 and local Model 2
+- If public Phase 1 ends at Model 3:
+  - fit local Models 1, 2, and 3
+
+### Phase 2B: local warm-start application
+
+- Fit the same Phase 2A-supported structure again with public-informed priors or hyperparameters.
+- Compare weak-prior local fitting against public-informed warm-start fitting.
+- Evaluate only on held-out local students.
+- Focus especially on early local attempts.
 
 ## Skill routing
+
 Use the matching skill based on the task:
 
-- **`model1-baseline-binary-logistic`**
-  Use for the public-data baseline.
+- `model1-baseline-binary-logistic`
+  Use for the baseline level-heterogeneity model.
 
-- **`model2-random-slope-binary-logistic`**
-  Use for the public-data random-slope extension.
+- `model2-random-slope-binary-logistic`
+  Use for the growth-heterogeneity extension.
 
-- **`model3-dynamic-volatility-binary-logistic`**
-  Use for the public-data volatility/uncertainty extension.
+- `model3-dynamic-volatility-binary-logistic`
+  Use for the stability-heterogeneity extension.
 
-- **`phase2-transfer-warm-start`**
-  Use after Phase 1 when transferring the chosen model family to the local dataset.
+- `phase2-transfer-warm-start`
+  Use for local replication and warm-start transfer once the public model family is chosen.
 
 ## Data rules
+
 - Never shuffle rows before splitting.
 - Never do random row-level train/test splits.
 - Preserve each learner's time order end to end.
 - Use only variables available before or at the point of prediction.
-- For Models 1 and 2, exclude same-trial process variables that are unavailable until the attempt is underway or finished.
-  - Examples usually excluded from the main models: `time_taken`, `hint_used`, `num_answer_changes`, final confidence, and other in-progress/post-response signals.
-- For Model 3, only add latent volatility/state terms; do not silently convert the project into a same-trial behaviour-classification task.
-- If later rows contain unseen items, report them explicitly.
-  - For the primary first-paper analysis, prefer a main evaluation on later rows whose item IDs were seen in the relevant training data.
-  - Report the number and proportion of excluded unseen-item rows.
+- For the main public discovery analysis, use the **full visible dataset** and retain **all linked KCs per item**.
+- Build a long attempt-KC table internally so each attempt updates every linked KC.
+- Collapse back to one row per attempt for the current model ladder using an additive multi-KC practice signal:
+  - `kc_opportunity` tracked separately for each `student_id x kc_id`
+  - `practice_feature = sum(log1p(kc_opportunity_k))` across the attempt's linked KCs
+- Keep single-KC-only and deterministic primary-KC branches as sensitivity analyses, not as the default mainline branch.
+- For Models 1 and 2, exclude same-trial process variables from the main model.
+- For Model 3, add only latent stability/state terms; do not convert the project into a same-trial behaviour-classification task.
+- Keep a **single-KC sensitivity analysis** and, when useful, a repeated-practice diagnostic subset to show how conclusions change under stricter identification choices.
 
 ## Default split strategy
-### Phase 1 Track A: seen-learner forward prediction
+
+### Phase 1 public discovery
+
 - Within learner, split in time order.
 - Preferred starting split: **80% train / 20% test** within learner.
-- If validation is needed: **70/15/15** within learner.
 - Set and document a minimum-history threshold before fitting.
 
-### Phase 1 Track B: unseen-public-student transfer
-- Split by `student_id` into train / validation / test.
-- Train on public train students only.
-- For each public test student, predict sequentially from their first observed local row onward.
+### Phase 2 local replication and warm start
 
-### Phase 2: local external validation
 - Split the local dataset by `student_id`.
-- Keep a small **local calibration subset** for local item effects / offsets.
-- Keep an **untouched local external-test set** of students for the main transfer evaluation.
+- Use a **3-way student-wise split**:
+  - `train`
+  - `calibration`
+  - `test`
+- Keep the `test` students untouched until evaluation.
 
 ## Evaluation
-Primary metrics for every phase/model:
-- held-out **log loss / mean log predictive density**
-- **Brier score**
-- **calibration intercept and slope**
-- **calibration curve / reliability plot**
 
-Secondary metrics:
-- accuracy
-- AUC
+### Phase 1 primary evidence
 
-For Phase 2, also report metrics by early-attempt windows such as:
-- attempts 1-5
-- attempts 6-10
-- attempts 11-20
+Use two evidence families together:
+
+1. **Substantive evidence**
+   - learner intercept variance above a practical floor
+   - learner slope variance above a practical floor, when applicable
+   - learner stability variance above a practical floor, when applicable
+   - stability of those variance terms across reruns
+
+2. **Predictive evidence**
+   - held-out log loss
+   - Brier score
+   - calibration intercept and slope
+   - calibration curve
+
+Default practical floor for added heterogeneity SD terms beyond Model 1:
+
+- posterior SD above `0.03` on the logit scale
+- with the 94% HDI lower bound also above `0.03`
+
+Predictive equivalence gate for richer models:
+
+- either held-out log loss improves
+- or log loss is no worse by more than `0.001`, while Brier improves and calibration slope moves closer to `1.0`
+
+### Phase 2 primary outcome
+
+Primary:
+
+- student-averaged log loss over attempts `1-5`
+
+Secondary:
+
+- student-averaged log loss over attempts `1-10`
+- Brier score
+- calibration intercept and slope
+- overall performance after more attempts
+
+Sparse-data fallback:
+
+- if too few students reach 5 attempts, pre-specify a shorter primary window such as attempts `1-3`
 
 ## Required deliverables
+
 Unless the user asks otherwise, produce:
+
 - a data dictionary / schema note
 - preprocessing code
 - split-generation code
@@ -120,20 +198,31 @@ Unless the user asks otherwise, produce:
 - for Phase 2, a transfer note describing what was carried from public to local data
 
 ## Decision rules
-- Fit Models 1, 2, and 3 in order.
-- If Model 2 does not improve meaningfully over Model 1 on primary probabilistic metrics, stop and simplify.
-- If Model 3 does not improve meaningfully over Model 2 on primary probabilistic metrics and calibration, do not carry Model 3 into Phase 2 by default.
-- Only transfer the most complex model that clearly earns its keep.
+
+- Fit Models 1, 2, and 3 in order on the same **full-dataset multi-KC public discovery sample**.
+- Use Model 1 only to answer the narrow question:
+  - do Models 2 or 3 add anything real beyond baseline level differences?
+- Use the **Variance + Prediction** rule:
+  - an added heterogeneity component counts as present only if its SD clears the practical floor
+  - and the richer model clears the predictive gate
+- If Model 2 fails that rule, stop at Model 1.
+- If Model 2 passes and Model 3 fails, stop at Model 2.
+- If Model 3 passes and remains numerically stable, carry it forward as the richer public model family.
+- If only Model 1 survives on that full-dataset branch, the public dataset is a pilot for this question, not the basis for a Model 1-led Phase 2.
+- Only a public-supported Model 2 or Model 3 can activate the main Phase 2 scientific path.
 
 ## Preferred stack
+
 - If the repository already has a modelling stack, stay in that stack.
 - Otherwise default to **Python 3.11 + pandas + pyarrow + Bambi/PyMC + ArviZ + matplotlib**.
-- Keep all code modular so the same data schema and evaluation code can be reused in Phase 2.
+- Keep all code modular so the same KC-aware schema and evaluation logic can be reused in Phase 2.
 
 ## Working style
+
 - Keep implementation simple, inspectable, and reproducible.
 - Make grounded assumptions, document them briefly, and keep moving.
 - Do not expand into BKT, DKT, RNNs, transformers, adaptive policy learning, or full personalised learning unless the user explicitly changes scope.
 - Preserve the distinction between:
-  - **Phase 1:** public-data model development
-  - **Phase 2:** warm-start transfer to local students
+  - **Phase 1:** public heterogeneity discovery
+  - **Phase 2A:** conditional local structural replication
+  - **Phase 2B:** conditional local warm-start application

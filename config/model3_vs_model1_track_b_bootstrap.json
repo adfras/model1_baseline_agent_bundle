@@ -1,0 +1,14 @@
+{
+  "baseline_row_predictions_path": "outputs/model1_track_b_online/model1_test_row_predictions.csv",
+  "challenger_row_predictions_path": "outputs/model3_track_b_online/model3_test_row_predictions.csv",
+  "output_csv_path": "outputs/model_comparisons/model3_vs_model1_track_b_bootstrap.csv",
+  "output_summary_path": "outputs/model_comparisons/model3_vs_model1_track_b_bootstrap_summary.json",
+  "attempt_windows": [
+    [1, 5],
+    [1, 10],
+    [6, 10],
+    [11, 20]
+  ],
+  "n_bootstrap": 4000,
+  "random_seed": 20260330
+}

@@ -1,0 +1,10 @@
+{
+  "model1_posterior_summary_path": "outputs/phase1_discovery/model1/model1_posterior_summary.csv",
+  "model1_evaluation_summary_path": "outputs/phase1_discovery/model1/model1_evaluation_summary.json",
+  "model2_posterior_summary_path": "outputs/phase1_discovery/model2/model2_posterior_summary.csv",
+  "model2_evaluation_summary_path": "outputs/phase1_discovery/model2/model2_evaluation_summary.json",
+  "model3_structural_summary_path": "outputs/phase1_discovery/model3/model3_structural_summary.csv",
+  "model3_evaluation_summary_path": "outputs/phase1_discovery/model3/model3_evaluation_summary.json",
+  "output_json_path": "outputs/phase1_discovery/phase1_heterogeneity_summary.json",
+  "output_markdown_path": "reports/phase1_discovery_heterogeneity_summary.md"
+}

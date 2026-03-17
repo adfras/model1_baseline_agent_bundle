@@ -1,0 +1,13 @@
+{
+  "processed_trials_path": "data/processed/phase1_repeated_subset/public_kc_repeated_subset_trials.csv",
+  "idata_path": "outputs/phase1_repeated_subset/model1/model1_idata.nc",
+  "overall_metrics_path": "outputs/phase1_repeated_subset/model1/model1_overall_metrics.csv",
+  "learner_metrics_path": "outputs/phase1_repeated_subset/model1/model1_learner_metrics.csv",
+  "calibration_table_path": "outputs/phase1_repeated_subset/model1/model1_calibration_table.csv",
+  "calibration_figure_path": "outputs/phase1_repeated_subset/model1/figures/model1_calibration.png",
+  "evaluation_summary_path": "outputs/phase1_repeated_subset/model1/model1_evaluation_summary.json",
+  "row_predictions_path": "outputs/phase1_repeated_subset/model1/model1_row_predictions.csv",
+  "evaluate_split": "test",
+  "track_name": "phase1_repeated_subset",
+  "primary_eval_only": true
+}

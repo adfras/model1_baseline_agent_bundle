@@ -1,0 +1,12 @@
+{
+  "processed_trials_path": "data/processed/model1_track_b/learner_trials.csv",
+  "posterior_draws_path": "outputs/model3_track_b/model3_posterior_draws.npz",
+  "overall_metrics_path": "outputs/model3_track_b/model3_validation_overall_metrics.csv",
+  "learner_metrics_path": "outputs/model3_track_b/model3_validation_learner_metrics.csv",
+  "calibration_table_path": "outputs/model3_track_b/model3_validation_calibration_table.csv",
+  "calibration_figure_path": "outputs/model3_track_b/figures/model3_validation_calibration.png",
+  "evaluation_summary_path": "outputs/model3_track_b/model3_validation_evaluation_summary.json",
+  "evaluate_split": "validation",
+  "primary_eval_only": true,
+  "prediction_batch_size": 1000
+}

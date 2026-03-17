@@ -1,0 +1,20 @@
+{
+  "input_path": "data/local/raw/local_attempts.csv",
+  "input_format": "csv",
+  "student_id_column": "student_id",
+  "item_id_column": "item_id",
+  "kc_id_column": "kc_id",
+  "correct_column": "correct",
+  "timestamp_column": "timestamp",
+  "attempt_order_column": "",
+  "attempt_id_column": "",
+  "question_difficulty_column": "",
+  "hint_used_column": "",
+  "trust_feedback_column": "",
+  "difficulty_feedback_column": "",
+  "duration_seconds_column": "",
+  "selection_change_column": "",
+  "processed_trials_path": "data/processed/phase2_local/local_trials.csv",
+  "summary_path": "data/processed/phase2_local/local_preprocess_summary.json",
+  "schema_note_path": "reports/phase2_local_schema_note.md"
+}

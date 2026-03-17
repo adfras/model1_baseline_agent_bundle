@@ -1,0 +1,10 @@
+{
+  "processed_trials_path": "data/processed/phase2_local/local_trials.csv",
+  "student_assignments_path": "data/processed/phase2_local/local_student_split_assignments.csv",
+  "split_trials_path": "data/processed/phase2_local/local_trials_with_splits.csv",
+  "summary_path": "data/processed/phase2_local/local_split_summary.json",
+  "train_fraction": 0.6,
+  "calibration_fraction": 0.2,
+  "test_fraction": 0.2,
+  "min_history": 5
+}

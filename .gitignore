@@ -5,3 +5,4 @@ __pycache__/
 outputs/
 full_project_agent_bundle.zip
 tmp_full_project_agent_bundle_*/
+third_party_review_bundle_*.zip
