@@ -19,6 +19,12 @@ POLICY_LIBRARY = {
         "target_band_high": 0.80,
         "candidate_pool_mode": "unseen_only",
     },
+    "diagnostic_challenge": {
+        "target_probability": 0.55,
+        "target_band_low": 0.45,
+        "target_band_high": 0.65,
+        "candidate_pool_mode": "unseen_only",
+    },
     "harder_challenge": {
         "target_probability": 0.60,
         "target_band_low": 0.55,
@@ -196,24 +202,12 @@ def score_candidates_model3(
     step_overall_opportunity: int,
     last_train_bin: int,
 ) -> np.ndarray:
-    state_bin_width = int(posterior_means["state_bin_width"])
-    step_bin = int(step_overall_opportunity // state_bin_width)
-    delta = max(step_bin - last_train_bin, 0)
-
-    candidate_matrix = item_kc_matrix[candidate_indices]
-    practice_total = candidate_matrix @ practice_vector
-    rho = float(posterior_means["rho_mean"])
-    latent_state = float(posterior_means["latent_state_mean"][last_train_bin, student_index])
-    state_sigma_student = float(posterior_means["state_sigma_student_mean"][student_index])
-
-    rho_power = float(np.power(rho, delta))
-    future_state_mean = latent_state * rho_power
-    if delta == 0:
-        future_state_variance = 0.0
-    else:
-        future_state_variance = (
-            (state_sigma_student**2) * (1.0 - float(np.power(rho, 2 * delta))) / max(1.0 - rho**2, 1e-6)
-        )
+    future_state_mean, future_state_variance = model3_future_state_summary(
+        posterior_means,
+        student_index=student_index,
+        step_overall_opportunity=step_overall_opportunity,
+        last_train_bin=last_train_bin,
+    )
 
     linear_mean = (
         float(posterior_means["Intercept_mean"])
@@ -228,6 +222,32 @@ def score_candidates_model3(
         + future_state_mean
     )
     return logistic_normal_mean(linear_mean, np.full_like(linear_mean, future_state_variance))
+
+
+def model3_future_state_summary(
+    posterior_means: dict[str, np.ndarray | float | None],
+    *,
+    student_index: int,
+    step_overall_opportunity: int,
+    last_train_bin: int,
+) -> tuple[float, float]:
+    state_bin_width = int(posterior_means["state_bin_width"])
+    step_bin = int(step_overall_opportunity // state_bin_width)
+    delta = max(step_bin - last_train_bin, 0)
+
+    rho = float(posterior_means["rho_mean"])
+    latent_state = float(posterior_means["latent_state_mean"][last_train_bin, student_index])
+    state_sigma_student = float(posterior_means["state_sigma_student_mean"][student_index])
+
+    rho_power = float(np.power(rho, delta))
+    future_state_mean = latent_state * rho_power
+    if delta == 0:
+        future_state_variance = 0.0
+    else:
+        future_state_variance = (
+            (state_sigma_student**2) * (1.0 - float(np.power(rho, 2 * delta))) / max(1.0 - rho**2, 1e-6)
+        )
+    return future_state_mean, future_state_variance
 
 
 def build_candidate_frame(
@@ -317,7 +337,7 @@ def choose_policy_item(policy_name: str, candidates: pd.DataFrame) -> tuple[pd.S
     target_band_low = float(spec["target_band_low"])
     target_band_high = float(spec["target_band_high"])
 
-    if policy_name in {"balanced_challenge", "harder_challenge", "confidence_building"}:
+    if policy_name in {"balanced_challenge", "diagnostic_challenge", "harder_challenge", "confidence_building"}:
         selected, fallback_used, in_band = choose_balanced_like(
             candidates,
             target_probability=target_probability,

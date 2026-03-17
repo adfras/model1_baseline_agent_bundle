@@ -26,6 +26,7 @@ This bundle is intended for external review of the current modelling workspace s
   - replay configs for R-PFA Model 2 and Model 3
   - modular policy-suite comparison note
   - policy summary outputs
+  - hybrid uncertainty-router prototype note
 - the KC-history feature validation note for recency and due-review fields
 - the dormant Phase 2 scaffolding:
   - local schema normalization template
@@ -63,6 +64,7 @@ This bundle is intended for external review of the current modelling workspace s
 - The selected operational R-PFA alpha is `0.9`.
 - On that branch, **R-PFA Model 2** beats **R-PFA Model 3** on log loss, Brier, and AUC, while **R-PFA Model 3** improves calibration slope.
 - On the modular offline policy suite, **R-PFA Model 2** remains the default next-question policy model.
+- A first hybrid router using **Model 2 means plus Model 3 uncertainty** is included as a prototype, but it does not replace the fixed-policy suite as the default.
 - The single-KC branch still collapses to Model 1 and is treated as a restrictive sensitivity analysis.
 - The repo now distinguishes clearly between:
   - the richest supported heterogeneity model

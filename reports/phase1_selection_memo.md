@@ -136,6 +136,15 @@ For current predictive yield and offline question-selection work:
 
 That is the current repo focus.
 
+### Uncertainty-routing note
+
+A first hybrid router using:
+
+- Model 2 for the mean prediction
+- Model 3 for a step-level uncertainty signal
+
+does help route more steps into remediation, review, and diagnostic modes, but it does **not** beat the fixed-policy suite on pure target-gap control. So it remains a prototype rather than a replacement for the current operational default.
+
 ## Remaining caveats
 
 - the restrictive single-KC sensitivity branch still collapses to Model 1

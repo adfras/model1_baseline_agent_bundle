@@ -154,6 +154,27 @@ Reference:
 
 - [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)
 
+## Uncertainty-aware routing prototype
+
+The repo now also includes a first hybrid router that uses:
+
+- **R-PFA Model 2** for the mean correctness estimate
+- **R-PFA Model 3** for a step-level uncertainty signal
+
+Current result:
+
+- the hybrid router improves recent-failure and due-review coverage relative to staying in balanced challenge all the time
+- but it does **not** improve pure target-gap control or stability relative to the fixed-policy suite
+
+Interpretation:
+
+- Model 3 uncertainty is useful as a **routing signal**
+- but the current hybrid is a prototype, not a new default operational policy
+
+Reference:
+
+- [hybrid_uncertainty_router.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router.md)
+
 ## Current repo focus
 
 Until local data is available, the practical mainline is:
@@ -162,6 +183,7 @@ Until local data is available, the practical mainline is:
 2. use **explicit Q-matrix R-PFA Model 2** as the operational learner-model mainline
 3. keep **R-PFA Model 3** as the richer challenger
 4. evaluate question-selection policies offline
+5. use uncertainty mainly for routing experiments, not as the main predictor
 
 ## Phase 2 status
 

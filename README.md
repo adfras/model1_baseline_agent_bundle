@@ -22,6 +22,7 @@ Core docs:
 - [phase1_qmatrix_rpfa_tuning.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_tuning.md)
 - [phase1_qmatrix_rpfa_operational_selection.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_operational_selection.md)
 - [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)
+- [hybrid_uncertainty_router.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router.md)
 
 ## Current focus
 
@@ -115,6 +116,23 @@ Interpretation:
 Reference:
 
 - [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)
+
+### Hybrid uncertainty router
+
+I also ran a first hybrid router that uses:
+
+- **Model 2** for mean success probabilities
+- **Model 3** for step-level uncertainty
+
+Current reading:
+
+- it improves **routing coverage** for recent-failure and due-review situations
+- it does **not** beat the fixed-policy suite on pure target-gap control
+- so it is a useful prototype for uncertainty-aware routing, not the new default policy
+
+Reference:
+
+- [hybrid_uncertainty_router.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router.md)
 
 ## Public data workflow
 

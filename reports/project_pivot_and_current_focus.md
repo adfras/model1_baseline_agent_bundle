@@ -125,6 +125,16 @@ Current answer:
 
 - Model 3 does **not** currently clear that bar
 
+There is now also a first uncertainty-aware router prototype:
+
+- Model 2 provides the mean success estimate
+- Model 3 provides a step-level uncertainty signal
+
+Current read:
+
+- useful for routing experiments
+- not yet better than the simpler fixed-policy suite on pure target-control metrics
+
 ## What is paused
 
 These are still in the repo, but they are not the active workstream right now:
