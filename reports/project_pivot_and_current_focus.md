@@ -138,6 +138,14 @@ Current read:
 - useful for routing experiments
 - not yet better than the simpler fixed-policy suite on pure target-control metrics
 
+There is now also a second-generation router with lagged observable proxies and a tuned threshold set.
+
+Current read:
+
+- the tuned v2 router is stronger than the first v1 hybrid on target gap and policy advantage
+- it is still materially less stable than v1 and much less target-precise than the fixed Model 2 policies
+- so it stays an exploratory routing branch rather than the new default
+
 ## What is paused
 
 These are still in the repo, but they are not the active workstream right now:
@@ -154,15 +162,16 @@ Reason:
 Until local data arrives, the sensible next work is:
 
 1. keep the R-PFA learner-model branch as mainline
-2. compare a small number of offline policy rules:
+2. keep the fixed offline policy suite as the operational baseline:
    - balanced
    - harder challenge
-   - easier confidence-building
+   - confidence-building
    - failure-aware remediation
    - spacing-aware review
 3. keep `24` hours as the current review-mode threshold unless later gating work changes it
-4. add engagement or frustration **proxies** only from observable data, not invented labels
-5. keep Model 3 as a challenger when stability or uncertainty is the reason to use it
+4. use the tuned hybrid v2 router as an exploratory gating branch, not the default
+5. evaluate policy behavior by subgroup and route rather than only in pooled summaries
+6. keep Model 3 as a challenger when stability or uncertainty is the reason to use it
 
 ## Bottom line
 

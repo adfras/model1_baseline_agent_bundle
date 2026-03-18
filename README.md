@@ -25,6 +25,7 @@ Core docs:
 - [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)
 - [spacing_policy_due_review_grid.md](D:/model1_baseline_agent_bundle/reports/spacing_policy_due_review_grid.md)
 - [hybrid_uncertainty_router.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router.md)
+- [hybrid_uncertainty_router_v2.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router_v2.md)
 
 ## Current focus
 
@@ -126,7 +127,7 @@ Reference:
 - [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)
 - [spacing_policy_due_review_grid.md](D:/model1_baseline_agent_bundle/reports/spacing_policy_due_review_grid.md)
 
-### Hybrid uncertainty router
+### Hybrid uncertainty routers
 
 I also ran a first hybrid router that uses:
 
@@ -139,9 +140,25 @@ Current reading:
 - it does **not** beat the fixed-policy suite on pure target-gap control
 - so it is a useful prototype for uncertainty-aware routing, not the new default policy
 
+A second-generation router now adds lagged observable proxies such as:
+
+- failure streak
+- recent success rate
+- hint-use rate
+- answer-change friction
+- response-time inflation
+
+Current reading:
+
+- raw v2 was too aggressive and degraded target-gap control
+- tuned v2 improved target gap and policy advantage over v1 while reducing seen-item recommendations
+- tuned v2 is still materially less stable than v1 and much less target-precise than the fixed Model 2 policies
+- so the tuned v2 router is the current **exploratory** hybrid branch, not the default policy
+
 Reference:
 
 - [hybrid_uncertainty_router.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router.md)
+- [hybrid_uncertainty_router_v2.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router_v2.md)
 
 ## Public data workflow
 

@@ -118,6 +118,7 @@ Reference:
 
 - [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)
 - [spacing_policy_due_review_grid.md](D:/model1_baseline_agent_bundle/reports/spacing_policy_due_review_grid.md)
+- [hybrid_uncertainty_router_v2.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router_v2.md)
 
 ## Current decision
 
@@ -152,6 +153,20 @@ A first hybrid router using:
 - Model 3 for a step-level uncertainty signal
 
 does help route more steps into remediation, review, and diagnostic modes, but it does **not** beat the fixed-policy suite on pure target-gap control. So it remains a prototype rather than a replacement for the current operational default.
+
+A second-generation router with lagged observable proxies and a `24`-hour review threshold is now also in the repo.
+
+Current reading:
+
+- raw v2 thresholds over-routed and degraded target-gap control
+- tuned v2 improved target gap, policy advantage, and recent-failure coverage relative to v1
+- tuned v2 still remained materially less stable than v1 and much less target-precise than the fixed-policy suite
+
+So the current position is:
+
+- fixed Model 2 policies remain the operational default
+- hybrid v1 remains the more stable hybrid baseline
+- tuned hybrid v2 is the current exploratory routing branch for later gating work
 
 ## Remaining caveats
 

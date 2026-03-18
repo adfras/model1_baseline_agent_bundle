@@ -185,7 +185,7 @@ Reference:
 
 - [spacing_policy_due_review_grid.md](D:/model1_baseline_agent_bundle/reports/spacing_policy_due_review_grid.md)
 
-## Uncertainty-aware routing prototype
+## Uncertainty-aware routing prototypes
 
 The repo now also includes a first hybrid router that uses:
 
@@ -206,6 +206,31 @@ Reference:
 
 - [hybrid_uncertainty_router.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router.md)
 
+The repo now also includes a second-generation hybrid router with lagged observable proxies and the selected `24`-hour review threshold.
+
+Current reading:
+
+- raw v2 thresholds were too aggressive and worsened both target gap and stability
+- tuned v2 improved over v1 on:
+  - target gap `1-10`: `0.01108` vs `0.01223`
+  - policy advantage `1-10`: `0.19473` vs `0.19082`
+  - recent-failure coverage: `0.3297` vs `0.2884`
+  - seen-item rate: `0.0920` vs `0.1416`
+- tuned v2 still remained worse than v1 on:
+  - stability: `0.03452` vs `0.01439`
+  - due-review coverage: `0.2204` vs `0.2404`
+- tuned v2 also remains much less target-precise than the fixed new-item policies
+
+Interpretation:
+
+- tuned v2 is the current **exploratory** hybrid router
+- it is useful for policy-routing diagnostics and subgroup analysis
+- it still does **not** replace the fixed-policy suite or the simpler hybrid v1 as the default operational baseline
+
+Reference:
+
+- [hybrid_uncertainty_router_v2.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router_v2.md)
+
 ## Current repo focus
 
 Until local data is available, the practical mainline is:
@@ -216,6 +241,7 @@ Until local data is available, the practical mainline is:
 4. use `24` hours as the current spacing-review threshold for review-mode experiments
 5. evaluate question-selection policies offline
 6. use uncertainty mainly for routing experiments, not as the main predictor
+7. treat tuned hybrid router v2 as an exploratory policy-gating branch, not the default
 
 ## Phase 2 status
 
