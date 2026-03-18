@@ -21,7 +21,9 @@ Core docs:
 - [project_pivot_and_current_focus.md](D:/model1_baseline_agent_bundle/reports/project_pivot_and_current_focus.md)
 - [phase1_qmatrix_rpfa_tuning.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_tuning.md)
 - [phase1_qmatrix_rpfa_operational_selection.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_operational_selection.md)
+- [phase1_qmatrix_rpfa_policy_alpha_comparison.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_policy_alpha_comparison.md)
 - [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)
+- [spacing_policy_due_review_grid.md](D:/model1_baseline_agent_bundle/reports/spacing_policy_due_review_grid.md)
 - [hybrid_uncertainty_router.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router.md)
 
 ## Current focus
@@ -37,7 +39,9 @@ Current answers:
 - The full-data explicit Q-matrix ladder supports **Model 2** and then **Model 3**.
 - The best predictive yield came from switching from opportunity-only history to **PFA / R-PFA wins/fails history**.
 - The operational learner-model mainline is now the **explicit Q-matrix R-PFA branch** with selected `alpha = 0.9`.
+- A direct policy-facing comparison against `alpha = 0.8` kept `0.9` in place.
 - The offline policy work now uses a **modular policy suite**, not only one fixed target-`0.7` replay.
+- The current selected review-mode threshold for `spacing_aware_review` is `24` hours on the operational Model 2 branch.
 - On that branch, **R-PFA Model 2** remains the default policy model and **R-PFA Model 3** remains the richer challenger.
 
 ## Current mainline results
@@ -79,6 +83,7 @@ Interpretation:
 
 - the **history representation** was the main leverage point
 - the tie-broken operational alpha is `0.9`
+- a direct Model 2 policy-suite comparison against `alpha = 0.8` also kept `0.9`
 - R-PFA Model 2 is the best current operational predictive model
 - R-PFA Model 3 remains the richer uncertainty/stability challenger
 
@@ -86,6 +91,7 @@ Reference:
 
 - [phase1_qmatrix_rpfa_tuning.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_tuning.md)
 - [phase1_qmatrix_rpfa_operational_selection.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_operational_selection.md)
+- [phase1_qmatrix_rpfa_policy_alpha_comparison.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_policy_alpha_comparison.md)
 
 ### Offline adaptive-policy replay
 
@@ -112,10 +118,13 @@ Interpretation:
 - Model 2 remains the default policy model
 - Model 3 changes recommendations materially, but those changes do not justify replacing Model 2 under the current replay suite
 - this is an **offline target-control / policy-behavior test**, not proof of causal learning gain
+- the fixed shared suite above used the common `48`-hour review threshold
+- later review-mode tuning on the operational Model 2 branch selected `24` hours for `spacing_aware_review`
 
 Reference:
 
 - [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)
+- [spacing_policy_due_review_grid.md](D:/model1_baseline_agent_bundle/reports/spacing_policy_due_review_grid.md)
 
 ### Hybrid uncertainty router
 

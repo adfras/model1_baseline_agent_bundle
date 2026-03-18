@@ -73,6 +73,7 @@ Current operational tuning result:
 - selected alpha: `0.9`
 - best raw log loss in the grid: `0.541378` at `alpha = 0.8`
 - selected alpha under the tie rule: `0.9`
+- policy-facing alpha comparison between `0.8` and `0.9` also kept `0.9`
 
 Current selected-branch results:
 
@@ -93,11 +94,13 @@ Interpretation:
 - the operational learner-model mainline is now the **R-PFA** branch with `alpha = 0.9`
 - Model 2 remains the default operational learner model
 - Model 3 remains a richer stability/uncertainty challenger rather than the automatic operational winner
+- on the policy-facing comparison, the new-learning target-gap difference between `0.8` and `0.9` stayed inside the tie margin while `0.9` was slightly better on policy advantage and stability
 
 Reference:
 
 - [phase1_qmatrix_rpfa_tuning.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_tuning.md)
 - [phase1_qmatrix_rpfa_operational_selection.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_operational_selection.md)
+- [phase1_qmatrix_rpfa_policy_alpha_comparison.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_policy_alpha_comparison.md)
 
 ## Sensitivity reading
 
@@ -154,6 +157,34 @@ Reference:
 
 - [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)
 
+## Spacing review-mode tuning
+
+Spacing review has now been tuned as its own review-mode problem on the operational Model 2 branch.
+
+Current selected threshold:
+
+- due-review hours: `24`
+
+Why it won:
+
+- best review-eligible target gap: `0.00863`
+- highest review-eligible rate: `0.6539`
+
+For comparison:
+
+- `48` hours had review-eligible target gap `0.00995` and eligibility `0.5706`
+- `72` hours had review-eligible target gap `0.00992` and eligibility `0.5135`
+- `96` hours had review-eligible target gap `0.00986` and eligibility `0.4837`
+
+Interpretation:
+
+- the shared Model 2 vs Model 3 suite is still the main fixed-policy baseline
+- the current **review-mode** setting to carry forward is `24` hours for `spacing_aware_review`
+
+Reference:
+
+- [spacing_policy_due_review_grid.md](D:/model1_baseline_agent_bundle/reports/spacing_policy_due_review_grid.md)
+
 ## Uncertainty-aware routing prototype
 
 The repo now also includes a first hybrid router that uses:
@@ -182,8 +213,9 @@ Until local data is available, the practical mainline is:
 1. keep the heterogeneity ladder scientifically coherent on the full dataset
 2. use **explicit Q-matrix R-PFA Model 2** as the operational learner-model mainline
 3. keep **R-PFA Model 3** as the richer challenger
-4. evaluate question-selection policies offline
-5. use uncertainty mainly for routing experiments, not as the main predictor
+4. use `24` hours as the current spacing-review threshold for review-mode experiments
+5. evaluate question-selection policies offline
+6. use uncertainty mainly for routing experiments, not as the main predictor
 
 ## Phase 2 status
 

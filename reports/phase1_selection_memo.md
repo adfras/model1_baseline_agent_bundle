@@ -50,6 +50,7 @@ The highest-yield improvement tried so far was not more latent-state tuning. It 
 On the explicit Q-matrix PFA / R-PFA branch family:
 
 - selected R-PFA alpha: `0.9`
+- direct policy-facing comparison against `0.8` also kept `0.9`
 - R-PFA Model 2:
   - log loss `0.541470`
   - Brier `0.183001`
@@ -66,6 +67,7 @@ Interpretation:
 - adding wins/fails per KC matters more than retuning the older opportunity-only structure
 - recency tuning now sits on top of that PFA baseline for the operational branch
 - the tie-broken operational alpha is `0.9`
+- the later policy-facing alpha comparison also kept `0.9`
 - Model 2 stays ahead of Model 3 on log loss, Brier, AUC, and accuracy
 - Model 3 still offers a richer uncertainty/stability story and a better calibration slope, but it is not the automatic operational winner
 
@@ -73,6 +75,7 @@ Reference:
 
 - [phase1_qmatrix_rpfa_tuning.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_tuning.md)
 - [phase1_qmatrix_rpfa_operational_selection.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_operational_selection.md)
+- [phase1_qmatrix_rpfa_policy_alpha_comparison.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_policy_alpha_comparison.md)
 
 ## First policy selection result
 
@@ -108,10 +111,13 @@ Interpretation:
 - Model 2 remains the default policy model unless Model 3 clearly improves the policy metrics
 - Model 3 does not currently clear that bar
 - the replay remains an offline target-control / policy-behavior test, not a causal learning-gain estimate
+- the fixed shared suite above used the common `48`-hour review threshold
+- later spacing-only tuning on the operational Model 2 branch selected `24` hours for `spacing_aware_review`
 
 Reference:
 
 - [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)
+- [spacing_policy_due_review_grid.md](D:/model1_baseline_agent_bundle/reports/spacing_policy_due_review_grid.md)
 
 ## Current decision
 
@@ -133,6 +139,8 @@ For current predictive yield and offline question-selection work:
 
 - **explicit Q-matrix R-PFA Model 2** is the mainline model
 - **explicit Q-matrix R-PFA Model 3** is the richer challenger
+- keep `alpha = 0.9`
+- use `24` hours as the current spacing-review threshold on the operational Model 2 branch
 
 That is the current repo focus.
 

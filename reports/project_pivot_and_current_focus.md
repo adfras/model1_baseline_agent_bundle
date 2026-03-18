@@ -46,6 +46,7 @@ That changed the practical model ranking:
 - explicit Q-matrix **R-PFA Model 2** is now the operational learner-model mainline
 - explicit Q-matrix **R-PFA Model 3** remains the richer challenger
 - the selected operational recency weight is `alpha = 0.9`
+- a direct policy-facing comparison against `alpha = 0.8` kept `0.9`
 
 ### 3. Local replication is not currently available
 
@@ -124,6 +125,8 @@ The current policy decision rule is:
 Current answer:
 
 - Model 3 does **not** currently clear that bar
+- `alpha = 0.9` remains the operational recency setting after direct policy comparison with `0.8`
+- the current `spacing_aware_review` threshold is `24` hours on the Model 2 branch
 
 There is now also a first uncertainty-aware router prototype:
 
@@ -157,8 +160,9 @@ Until local data arrives, the sensible next work is:
    - easier confidence-building
    - failure-aware remediation
    - spacing-aware review
-3. add engagement or frustration **proxies** only from observable data, not invented labels
-4. keep Model 3 as a challenger when stability or uncertainty is the reason to use it
+3. keep `24` hours as the current review-mode threshold unless later gating work changes it
+4. add engagement or frustration **proxies** only from observable data, not invented labels
+5. keep Model 3 as a challenger when stability or uncertainty is the reason to use it
 
 ## Bottom line
 

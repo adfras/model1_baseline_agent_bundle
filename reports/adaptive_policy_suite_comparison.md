@@ -2,6 +2,12 @@
 
 This note compares the offline policy suite for explicit Q-matrix R-PFA Model 2 and Model 3.
 
+Important scope note:
+
+- this is the shared fixed-suite baseline using the common `48`-hour spacing threshold for both models
+- later review-mode tuning on the operational Model 2 branch selected `24` hours for `spacing_aware_review`
+- see [spacing_policy_due_review_grid.md](D:/model1_baseline_agent_bundle/reports/spacing_policy_due_review_grid.md)
+
 Model metadata:
 
 - Model 2 history mode: `rpfa`, decay alpha `0.9`

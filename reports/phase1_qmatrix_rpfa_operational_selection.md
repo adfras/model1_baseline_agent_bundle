@@ -28,9 +28,16 @@ Why `0.9` was selected:
 - `alpha = 0.9` was within the pre-registered tie margin of the best log loss
 - the rule then prefers the largest alpha inside that margin
 
+Later policy-facing check:
+
+- a direct Model 2 policy-suite comparison against `alpha = 0.8` also kept `0.9`
+- the mean target-gap difference on the three new-learning policies stayed inside the tie margin
+- `0.9` was slightly better on mean policy advantage and mean recommendation stability
+
 Reference:
 
 - [phase1_qmatrix_rpfa_tuning.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_tuning.md)
+- [phase1_qmatrix_rpfa_policy_alpha_comparison.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_policy_alpha_comparison.md)
 
 ## Selected RPFA model comparison
 
@@ -70,9 +77,15 @@ Main reading:
 - Model 3 does not produce a consistent target-gap or policy-advantage win
 - Model 3 changes recommendations materially, but those changes do not justify replacing Model 2 as the default policy model
 
+Important review-mode note:
+
+- the shared Model 2 vs Model 3 suite above used the common `48`-hour review threshold
+- later spacing-only tuning on the operational Model 2 branch selected `24` hours as the current review-mode threshold
+
 Reference:
 
 - [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)
+- [spacing_policy_due_review_grid.md](D:/model1_baseline_agent_bundle/reports/spacing_policy_due_review_grid.md)
 
 ## Operational decision
 
@@ -83,5 +96,7 @@ Keep the roles separate:
 - **operational policy result**:
   - **explicit Q-matrix R-PFA Model 2** is the default deployment candidate
   - **explicit Q-matrix R-PFA Model 3** remains the uncertainty/stability challenger
+  - keep `alpha = 0.9`
+  - use `24` hours as the current spacing-review threshold on the Model 2 branch
 
 That is the current repo mainline.
