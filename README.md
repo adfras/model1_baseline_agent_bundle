@@ -24,6 +24,7 @@ Core docs:
 - [phase1_qmatrix_rpfa_policy_alpha_comparison.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_policy_alpha_comparison.md)
 - [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)
 - [spacing_policy_due_review_grid.md](D:/model1_baseline_agent_bundle/reports/spacing_policy_due_review_grid.md)
+- [policy_subgroup_diagnostics.md](D:/model1_baseline_agent_bundle/reports/policy_subgroup_diagnostics.md)
 - [hybrid_uncertainty_router.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router.md)
 - [hybrid_uncertainty_router_v2.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router_v2.md)
 
@@ -122,10 +123,23 @@ Interpretation:
 - the fixed shared suite above used the common `48`-hour review threshold
 - later review-mode tuning on the operational Model 2 branch selected `24` hours for `spacing_aware_review`
 
+The current subgroup diagnostics now make the policy split clearer:
+
+- `confidence_building` has the smallest target gap overall, on early steps, and on multi-KC items
+- `balanced_challenge` has the smallest target gap later in the sequence, on single-KC items, and in the higher-friction and lower-proficiency contexts
+- `harder_challenge` most often wins on policy advantage
+- `failure_aware_remediation` and `spacing_aware_review` still look like separate service modes rather than universal winners
+
+So the fixed-policy result is now:
+
+- there is **no single universal best policy**
+- the next step is a conservative router that switches between these modes only when the subgroup evidence supports it
+
 Reference:
 
 - [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)
 - [spacing_policy_due_review_grid.md](D:/model1_baseline_agent_bundle/reports/spacing_policy_due_review_grid.md)
+- [policy_subgroup_diagnostics.md](D:/model1_baseline_agent_bundle/reports/policy_subgroup_diagnostics.md)
 
 ### Hybrid uncertainty routers
 

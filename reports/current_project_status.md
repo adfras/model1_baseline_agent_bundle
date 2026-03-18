@@ -185,6 +185,31 @@ Reference:
 
 - [spacing_policy_due_review_grid.md](D:/model1_baseline_agent_bundle/reports/spacing_policy_due_review_grid.md)
 
+## Policy subgroup diagnostics
+
+The repo now includes a policy heterogeneity pass on the **current operational suite**:
+
+- the four new-item policies come from the fixed Model 2 R-PFA suite
+- `spacing_aware_review` is replaced with the selected `24`-hour review branch
+
+Current reading:
+
+- there is **no single universal best policy**
+- `confidence_building` has the smallest target gap overall, on early steps, and on multi-KC items
+- `balanced_challenge` has the smallest target gap later in the sequence, on single-KC items, and in the higher-friction and lower-proficiency contexts
+- `harder_challenge` most often wins on policy advantage
+- `failure_aware_remediation` and `spacing_aware_review` still look like separate service modes rather than global winners
+
+Interpretation:
+
+- the next policy move should be a **conservative router**
+- review and remediation should stay distinct modes
+- new-learning mode should switch mainly between `balanced_challenge`, `confidence_building`, and `harder_challenge`
+
+Reference:
+
+- [policy_subgroup_diagnostics.md](D:/model1_baseline_agent_bundle/reports/policy_subgroup_diagnostics.md)
+
 ## Uncertainty-aware routing prototypes
 
 The repo now also includes a first hybrid router that uses:
@@ -242,6 +267,7 @@ Until local data is available, the practical mainline is:
 5. evaluate question-selection policies offline
 6. use uncertainty mainly for routing experiments, not as the main predictor
 7. treat tuned hybrid router v2 as an exploratory policy-gating branch, not the default
+8. use the subgroup diagnostics to design a simpler router v3 instead of searching for one universal policy winner
 
 ## Phase 2 status
 

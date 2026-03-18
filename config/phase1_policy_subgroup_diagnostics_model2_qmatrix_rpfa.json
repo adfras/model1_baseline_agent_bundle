@@ -1,0 +1,13 @@
+{
+  "suite_rows_path": "outputs/phase1_adaptive_policy/model2_qmatrix_rpfa/policy_suite_rows.csv",
+  "spacing_rows_path": "outputs/phase1_adaptive_policy/model2_qmatrix_rpfa_spacing_due24/policy_suite_rows.csv",
+  "trials_path": "data/processed/phase1_multikc/multikc_trials.csv",
+  "max_eval_step": 10,
+  "recent_failure_quantile": 0.75,
+  "low_proficiency_quantile": 0.25,
+  "high_duration_quantile": 0.75,
+  "summary_output_path": "outputs/phase1_adaptive_policy/model2_qmatrix_rpfa_operational_subgroups/policy_subgroup_summary.csv",
+  "winners_output_path": "outputs/phase1_adaptive_policy/model2_qmatrix_rpfa_operational_subgroups/policy_subgroup_winners.csv",
+  "json_output_path": "outputs/phase1_adaptive_policy/model2_qmatrix_rpfa_operational_subgroups/policy_subgroup_summary.json",
+  "markdown_output_path": "reports/policy_subgroup_diagnostics.md"
+}

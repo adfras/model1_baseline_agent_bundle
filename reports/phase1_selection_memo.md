@@ -118,7 +118,26 @@ Reference:
 
 - [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)
 - [spacing_policy_due_review_grid.md](D:/model1_baseline_agent_bundle/reports/spacing_policy_due_review_grid.md)
+- [policy_subgroup_diagnostics.md](D:/model1_baseline_agent_bundle/reports/policy_subgroup_diagnostics.md)
 - [hybrid_uncertainty_router_v2.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router_v2.md)
+
+### Policy-heterogeneity note
+
+The current operational suite has now also been compared by subgroup.
+
+Current reading:
+
+- there is no single universal best fixed policy
+- `confidence_building` has the smallest target gap overall, on early steps, and on multi-KC items
+- `balanced_challenge` has the smallest target gap later in the sequence, on single-KC items, and in the higher-friction and lower-proficiency contexts
+- `harder_challenge` most often wins on policy advantage
+- `failure_aware_remediation` and `spacing_aware_review` still behave more like service modes than global winners
+
+So the policy implication is:
+
+- keep the fixed Model 2 suite as the current baseline
+- stop looking for one universal winner
+- use the subgroup diagnostics as the basis for a conservative router v3
 
 ## Current decision
 
