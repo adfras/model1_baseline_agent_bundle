@@ -231,6 +231,50 @@ Reference:
 - [policy_subgroup_diagnostics.md](D:/model1_baseline_agent_bundle/reports/policy_subgroup_diagnostics.md)
 - [conservative_router_v3_attempt.md](D:/model1_baseline_agent_bundle/reports/conservative_router_v3_attempt.md)
 
+## Simple two-mode router pass
+
+The repo now also includes the requested simple default router:
+
+- if review is due -> `spacing_aware_review`
+- else if early step / low predicted proficiency / high recent failure / high friction -> `confidence_building`
+- else -> `balanced_challenge`
+
+This pass kept the scorer frozen at:
+
+- **R-PFA Model 2**
+- `alpha = 0.9`
+- `24`-hour review threshold
+
+Best threshold set from the small grid:
+
+- early-step cutoff `5`
+- low-proficiency threshold at the `30%` quantile (`0.71797`)
+- recent-failure threshold at the `75%` quantile (`45.24461`)
+- `current` friction rule
+
+Result:
+
+- router new-learning target gap `1-10`: `0.002871`
+- fixed `confidence_building` new-learning target gap `1-10`: `0.002918`
+- delta: `-0.000047`
+
+But the router then lost on the tie-break metrics:
+
+- policy advantage delta vs fixed `confidence_building`: `-0.004489`
+- stability delta vs fixed `confidence_building`: `+0.009543`
+
+Interpretation:
+
+- the target-gap gain is too small to justify the stability blow-up
+- the simple router is therefore **not** promoted to the operational default
+- `spacing_aware_review` remains a separate review service mode
+- `failure_aware_remediation` stays out of the default path
+- the current frozen default new-learning choice is **fixed `confidence_building`**
+
+Reference:
+
+- [simple_two_mode_router_decision_memo.md](D:/model1_baseline_agent_bundle/reports/simple_two_mode_router_decision_memo.md)
+
 ## Uncertainty-aware routing prototypes
 
 The repo now also includes a first hybrid router that uses:
@@ -287,8 +331,10 @@ Until local data is available, the practical mainline is:
 4. use `24` hours as the current spacing-review threshold for review-mode experiments
 5. evaluate question-selection policies offline
 6. use uncertainty mainly for routing experiments, not as the main predictor
-7. treat tuned hybrid router v2 as an exploratory policy-gating branch, not the default
-8. treat the first conservative router v3 attempt as rejected and keep the fixed suite as the operational baseline
+7. keep fixed `confidence_building` as the default new-learning policy under the frozen scorer
+8. keep `balanced_challenge` and `harder_challenge` as comparators rather than the default
+9. treat tuned hybrid router v2 as an exploratory policy-gating branch, not the default
+10. treat the first conservative router v3 attempt and the later simple two-mode router as informative but non-promoted routing experiments
 
 ## Phase 2 status
 

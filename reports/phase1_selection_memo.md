@@ -165,6 +165,51 @@ Reference:
 - [policy_subgroup_diagnostics.md](D:/model1_baseline_agent_bundle/reports/policy_subgroup_diagnostics.md)
 - [conservative_router_v3_attempt.md](D:/model1_baseline_agent_bundle/reports/conservative_router_v3_attempt.md)
 
+### Simple two-mode router note
+
+A later simple two-mode router was then tried with the scorer frozen at:
+
+- **R-PFA Model 2**
+- `alpha = 0.9`
+- `24`-hour `spacing_aware_review`
+
+Router rule:
+
+- if review is due -> `spacing_aware_review`
+- else if early / low-proficiency / high-failure / high-friction -> `confidence_building`
+- else -> `balanced_challenge`
+
+Best threshold set:
+
+- early-step cutoff `5`
+- low-proficiency threshold at the `30%` quantile (`0.71797`)
+- recent-failure threshold at the `75%` quantile (`45.24461`)
+- `current` friction rule
+
+Result on the new-learning subset:
+
+- router target gap `1-10`: `0.002871`
+- fixed `confidence_building`: `0.002918`
+- delta: `-0.000047`
+
+But the router lost on the operational tie-break metrics:
+
+- policy advantage delta vs fixed `confidence_building`: `-0.004489`
+- stability delta vs fixed `confidence_building`: `+0.009543`
+
+So the practical decision is:
+
+- keep `spacing_aware_review` as a separate review service mode
+- keep fixed `confidence_building` as the default new-learning choice
+- keep `balanced_challenge` as the safer comparator / later-step reference
+- keep `harder_challenge` only as a benchmark
+- keep `failure_aware_remediation` out of the default path
+- do **not** promote the simple router as the new default
+
+Reference:
+
+- [simple_two_mode_router_decision_memo.md](D:/model1_baseline_agent_bundle/reports/simple_two_mode_router_decision_memo.md)
+
 ## Current decision
 
 Keep the decisions separate and explicit.
@@ -210,6 +255,7 @@ Current reading:
 So the current position is:
 
 - fixed Model 2 policies remain the operational default
+- fixed `confidence_building` is now the default new-learning choice under that frozen scorer
 - hybrid v1 remains the more stable hybrid baseline
 - tuned hybrid v2 is the current exploratory routing branch for later gating work
 - the first conservative router v3 attempt is documented only as a rejected follow-up, not an active branch

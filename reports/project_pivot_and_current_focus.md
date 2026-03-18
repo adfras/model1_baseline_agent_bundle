@@ -157,6 +157,19 @@ Current read:
 - it was worse than hybrid v1, tuned hybrid v2, and the fixed `balanced_challenge` baseline
 - so it was rejected and not kept as an active repo branch
 
+There is now also a later simple two-mode router pass built on the frozen scorer:
+
+- review due -> `spacing_aware_review`
+- otherwise `confidence_building` for early / low-proficiency / high-failure / high-friction contexts
+- otherwise `balanced_challenge`
+
+Current read:
+
+- it beat fixed `confidence_building` by only a tiny amount on new-learning target gap
+- it then lost clearly on policy advantage and especially on stability
+- so it was **not** promoted as the new operational default
+- the default new-learning choice remains fixed `confidence_building`
+
 ## What is paused
 
 These are still in the repo, but they are not the active workstream right now:
@@ -173,12 +186,11 @@ Reason:
 Until local data arrives, the sensible next work is:
 
 1. keep the R-PFA learner-model branch as mainline
-2. keep the fixed offline policy suite as the operational baseline:
-   - balanced
-   - harder challenge
-   - confidence-building
-   - failure-aware remediation
-   - spacing-aware review
+2. keep the fixed offline policy stack as the operational baseline:
+   - default new-learning choice = `confidence_building`
+   - keep `balanced_challenge` as the main comparator / later-step reference
+   - keep `harder_challenge` as a benchmark only
+   - keep `spacing_aware_review` as the separate review mode
 3. keep `24` hours as the current review-mode threshold unless later gating work changes it
 4. keep the tuned hybrid v2 router as an exploratory gating branch, not the default
 5. evaluate policy behavior by subgroup and route rather than only in pooled summaries

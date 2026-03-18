@@ -26,6 +26,7 @@ Core docs:
 - [spacing_policy_due_review_grid.md](D:/model1_baseline_agent_bundle/reports/spacing_policy_due_review_grid.md)
 - [policy_subgroup_diagnostics.md](D:/model1_baseline_agent_bundle/reports/policy_subgroup_diagnostics.md)
 - [conservative_router_v3_attempt.md](D:/model1_baseline_agent_bundle/reports/conservative_router_v3_attempt.md)
+- [simple_two_mode_router_decision_memo.md](D:/model1_baseline_agent_bundle/reports/simple_two_mode_router_decision_memo.md)
 - [hybrid_uncertainty_router.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router.md)
 - [hybrid_uncertainty_router_v2.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router_v2.md)
 
@@ -46,6 +47,7 @@ Current answers:
 - The offline policy work now uses a **modular policy suite**, not only one fixed target-`0.7` replay.
 - The current selected review-mode threshold for `spacing_aware_review` is `24` hours on the operational Model 2 branch.
 - On that branch, **R-PFA Model 2** remains the default policy model and **R-PFA Model 3** remains the richer challenger.
+- The latest simple two-mode router pass did **not** justify replacing the fixed policies; the current frozen default new-learning choice is fixed `confidence_building`.
 
 ## Current mainline results
 
@@ -136,6 +138,11 @@ So the fixed-policy result is now:
 - there is **no single universal best policy**
 - a first conservative router v3 attempt was tried and rejected because it worsened the main replay metrics
 - the current operational baseline therefore remains the fixed policy suite, not a new router
+- a later simple two-mode router did beat fixed `confidence_building` by a tiny amount on new-learning target gap, but not by enough to justify its much worse stability
+- the current operational freeze is therefore:
+  - scorer = **R-PFA Model 2**
+  - review mode = `24`-hour `spacing_aware_review`
+  - default new-learning choice = fixed `confidence_building`
 
 Reference:
 
@@ -143,6 +150,7 @@ Reference:
 - [spacing_policy_due_review_grid.md](D:/model1_baseline_agent_bundle/reports/spacing_policy_due_review_grid.md)
 - [policy_subgroup_diagnostics.md](D:/model1_baseline_agent_bundle/reports/policy_subgroup_diagnostics.md)
 - [conservative_router_v3_attempt.md](D:/model1_baseline_agent_bundle/reports/conservative_router_v3_attempt.md)
+- [simple_two_mode_router_decision_memo.md](D:/model1_baseline_agent_bundle/reports/simple_two_mode_router_decision_memo.md)
 
 ### Hybrid uncertainty routers
 
