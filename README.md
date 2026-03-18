@@ -30,6 +30,7 @@ Core docs:
 - [hybrid_uncertainty_router.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router.md)
 - [hybrid_uncertainty_router_v2.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router_v2.md)
 - [policy_alignment_calibration.md](D:/model1_baseline_agent_bundle/reports/policy_alignment_calibration.md)
+- [uncertainty_calibration_layer.md](D:/model1_baseline_agent_bundle/reports/uncertainty_calibration_layer.md)
 
 ## Current focus
 
@@ -49,6 +50,7 @@ Current answers:
 - The current selected review-mode threshold for `spacing_aware_review` is `24` hours on the operational Model 2 branch.
 - On that branch, **R-PFA Model 2** remains the default policy model and **R-PFA Model 3** remains the richer challenger.
 - A later logged actual-next **policy-alignment calibration** check did **not** show a policy-context calibration advantage for Model 3, so it remains exploratory rather than operational.
+- A later **uncertainty calibration layer** check did show a small held-out calibration-loss win when Model 3 uncertainty was used as a side-channel on top of Model 2.
 - The latest simple two-mode router pass did **not** justify replacing the fixed policies; the current frozen default new-learning choice is fixed `confidence_building`.
 
 ## Current mainline results
@@ -94,6 +96,7 @@ Interpretation:
 - R-PFA Model 2 is the best current operational predictive model
 - R-PFA Model 3 remains the richer uncertainty/stability challenger
 - its overall branch calibration slope is closer to `1.0`, but a later policy-context actual-next calibration check does **not** show an operational calibration advantage
+- using Model 3 uncertainty as a **banded calibration side-channel** does improve held-out log loss and Brier over the strongest non-uncertainty calibrator
 
 Reference:
 
@@ -129,6 +132,7 @@ Interpretation:
 - the fixed shared suite above used the common `48`-hour review threshold
 - later review-mode tuning on the operational Model 2 branch selected `24` hours for `spacing_aware_review`
 - a later logged actual-next calibration check in the same policy contexts also kept Model 2 as the operational scorer
+- a still later side-channel calibration-layer experiment then showed a small but real probabilistic-calibration win from **Model 3 uncertainty**, without replacing Model 2 as the scorer
 
 The current subgroup diagnostics now make the policy split clearer:
 
@@ -156,6 +160,7 @@ Reference:
 - [conservative_router_v3_attempt.md](D:/model1_baseline_agent_bundle/reports/conservative_router_v3_attempt.md)
 - [simple_two_mode_router_decision_memo.md](D:/model1_baseline_agent_bundle/reports/simple_two_mode_router_decision_memo.md)
 - [policy_alignment_calibration.md](D:/model1_baseline_agent_bundle/reports/policy_alignment_calibration.md)
+- [uncertainty_calibration_layer.md](D:/model1_baseline_agent_bundle/reports/uncertainty_calibration_layer.md)
 
 ### Hybrid uncertainty routers
 

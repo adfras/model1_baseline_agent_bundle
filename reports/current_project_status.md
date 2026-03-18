@@ -186,6 +186,36 @@ Reference:
 
 - [policy_alignment_calibration.md](D:/model1_baseline_agent_bundle/reports/policy_alignment_calibration.md)
 
+## Uncertainty calibration layer
+
+The repo now also includes the next, more useful calibration question:
+
+- can Model 3 help if it is used as a **calibration side-channel** on top of Model 2, rather than as a replacement scorer?
+
+Current answer:
+
+- yes, in a small but real way
+- a banded uncertainty calibrator beats:
+  - raw Model 2
+  - Platt-calibrated Model 2
+  - context-only calibrated Model 2
+- held-out evaluation-student results:
+  - context-only calibrator log loss `0.516384`
+  - uncertainty-side-channel calibrator log loss `0.516209`
+  - context-only Brier `0.172574`
+  - uncertainty-side-channel Brier `0.172524`
+
+Interpretation:
+
+- this is the first actual calibration win from residual heterogeneity in the repo
+- the win comes from using **Model 3 uncertainty** to calibrate **Model 2**
+- not from replacing Model 2 with raw Model 3
+- the improvement is broad across the main policy contexts, but target-band gains are mixed and the fixed policy suite has not yet been rerun with these recalibrated probabilities
+
+Reference:
+
+- [uncertainty_calibration_layer.md](D:/model1_baseline_agent_bundle/reports/uncertainty_calibration_layer.md)
+
 ## Spacing review-mode tuning
 
 Spacing review has now been tuned as its own review-mode problem on the operational Model 2 branch.

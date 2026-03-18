@@ -31,6 +31,7 @@ This bundle is intended for external review of the current modelling workspace s
   - a decision note on the rejected conservative router v3 attempt
   - the simple two-mode router threshold search and decision memo
   - a policy-alignment calibration note comparing Model 2 and Model 3 on logged actual-next items in policy contexts
+  - an uncertainty calibration-layer note showing Model 2 plus Model 3 uncertainty as a side-channel
   - policy summary outputs
   - hybrid uncertainty-router notes, including the v2 lagged-proxy branch
 - the KC-history feature validation note for recency and due-review fields
@@ -73,6 +74,7 @@ This bundle is intended for external review of the current modelling workspace s
 - On that branch, **R-PFA Model 2** beats **R-PFA Model 3** on log loss, Brier, and AUC, while **R-PFA Model 3** has the better overall branch calibration slope.
 - On the modular offline policy suite, **R-PFA Model 2** remains the default next-question policy model.
 - A later logged actual-next policy-alignment calibration check does **not** show a policy-context calibration advantage for Model 3, so it remains exploratory rather than operational.
+- A later calibration-layer branch does show a small held-out calibration-loss win when **Model 3 uncertainty** is used as a side-channel on top of **Model 2**.
 - On the current operational Model 2 suite, there is no single universal best fixed policy: `confidence_building` and `balanced_challenge` split the target-gap wins, `harder_challenge` most often wins policy advantage, and remediation/review remain distinct service modes.
 - A first hybrid router using **Model 2 means plus Model 3 uncertainty** is included as a prototype, but it does not replace the fixed-policy suite as the default.
 - A later hybrid-router v2 branch adds lagged observable proxies and tuned thresholds.

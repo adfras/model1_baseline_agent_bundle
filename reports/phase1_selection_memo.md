@@ -263,6 +263,36 @@ Reference:
 
 - [policy_alignment_calibration.md](D:/model1_baseline_agent_bundle/reports/policy_alignment_calibration.md)
 
+### Uncertainty side-channel result
+
+The next calibration-layer pass asked the more useful question:
+
+- can Model 3 improve calibration when used as a side-channel on top of Model 2?
+
+Current answer:
+
+- yes
+- a **banded Model 3 uncertainty calibrator** beats the strongest non-uncertainty baseline on held-out students
+
+Main held-out evaluation result:
+
+- context-only calibrated Model 2 log loss: `0.516384`
+- Model 2 + banded Model 3 uncertainty log loss: `0.516209`
+- context-only calibrated Model 2 Brier: `0.172574`
+- Model 2 + banded Model 3 uncertainty Brier: `0.172524`
+
+Interpretation:
+
+- this is the first actual **calibration win** from residual heterogeneity in the repo
+- the right operational split is now:
+  - **Model 2** for mean scoring
+  - **Model 3 uncertainty** for calibration alignment
+- this is still not yet a full policy-suite rerun with recalibrated probabilities, so the current fixed-policy operational baseline remains unchanged for now
+
+Reference:
+
+- [uncertainty_calibration_layer.md](D:/model1_baseline_agent_bundle/reports/uncertainty_calibration_layer.md)
+
 ### Uncertainty-routing note
 
 A first hybrid router using:

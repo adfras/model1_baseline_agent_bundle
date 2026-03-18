@@ -1,0 +1,9 @@
+{
+  "hybrid_rows_path": "outputs/phase1_adaptive_policy/hybrid_qmatrix_rpfa_v2_tuned/hybrid_policy_rows.csv",
+  "calibration_student_share": 0.5,
+  "l2_penalty": 0.25,
+  "min_rows_per_context": 50,
+  "summary_output_path": "outputs/phase1_adaptive_policy/uncertainty_calibration_layer/uncertainty_calibration_layer_summary.json",
+  "comparison_output_path": "outputs/phase1_adaptive_policy/uncertainty_calibration_layer/uncertainty_calibration_layer_comparison.csv",
+  "evaluation_rows_output_path": "outputs/phase1_adaptive_policy/uncertainty_calibration_layer/uncertainty_calibration_layer_eval_rows.csv"
+}

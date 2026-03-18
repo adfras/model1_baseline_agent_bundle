@@ -141,6 +141,18 @@ Current read:
 - but the current context-specific check still does **not** show a Model 3 calibration advantage
 - so Model 3 remains the right **exploratory** uncertainty layer, not the operational scorer
 
+There is now also a follow-up calibration-layer branch that uses Model 3 differently:
+
+- keep **Model 2** as the scorer
+- use **Model 3 uncertainty** as a side-channel in a banded calibration layer
+
+Current read:
+
+- that branch does produce a small held-out calibration-loss win over the strongest non-uncertainty calibrator
+- so residual heterogeneity is now useful in the repo in the way that matters most here:
+  - **policy-aligned calibration**
+- this still does **not** make raw Model 3 the main scorer
+
 There is now also a first uncertainty-aware router prototype:
 
 - Model 2 provides the mean success estimate
@@ -216,3 +228,4 @@ The project is now focused on:
 The current best operational path is:
 
 - **explicit Q-matrix R-PFA Model 2**
+- with a **Model 3 uncertainty calibration layer** as the current best policy-alignment side-channel
