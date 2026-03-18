@@ -1,0 +1,26 @@
+{
+  "processed_trials_path": "data/processed/phase1_multikc/multikc_trials.csv",
+  "attempt_kc_long_path": "data/processed/phase1_multikc/multikc_attempt_kc_long.csv",
+  "model2_posterior_draws_path": "outputs/phase1_multikc_qmatrix_rpfa/model2/model2_posterior_draws.npz",
+  "model3_posterior_draws_path": "outputs/phase1_multikc_qmatrix_rpfa/model3/model3_posterior_draws.npz",
+  "hybrid_threshold_config_path": "config/phase1_adaptive_policy_hybrid_qmatrix_rpfa_v2_tuned.json",
+  "uncertainty_calibration_summary_path": "outputs/phase1_adaptive_policy/uncertainty_calibration_layer/uncertainty_calibration_layer_summary.json",
+  "row_output_path": "outputs/phase1_adaptive_policy/calibrated_policy_suite_qmatrix_rpfa/policy_suite_rows.csv",
+  "summary_output_path": "outputs/phase1_adaptive_policy/calibrated_policy_suite_qmatrix_rpfa/policy_suite_summary.json",
+  "comparison_output_path": "outputs/phase1_adaptive_policy/calibrated_policy_suite_qmatrix_rpfa/policy_suite_comparison.csv",
+  "track_name": "phase1_adaptive_policy_calibrated_qmatrix_rpfa",
+  "calibration_student_share": 0.5,
+  "decay_alpha": 0.9,
+  "due_review_hours": 24.0,
+  "policy_names": [
+    "balanced_challenge",
+    "harder_challenge",
+    "confidence_building"
+  ],
+  "max_eval_step": 10,
+  "primary_eval_only": true,
+  "baseline_method": "model2_context_calibrated",
+  "challenger_method": "model2_plus_model3_uncertainty",
+  "primary_policy": "confidence_building",
+  "stability_tolerance": 0.001
+}

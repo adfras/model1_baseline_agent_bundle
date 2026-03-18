@@ -145,11 +145,22 @@ Current best calibration stack:
 - review threshold: `24` hours
 - calibration layer: **banded Model 3 uncertainty side-channel**
 
-Important limitation:
+Later follow-up:
 
-- the fixed-policy suite has **not** yet been rerun with these recalibrated probabilities
-- so this note establishes a calibration win
-- it does **not** yet establish a next-question policy win
+- the fixed-policy suite has now been rerun with these recalibrated probabilities
+- that hard operational test **fails**
+- the side-channel gets a tiny `confidence_building` target-gap improvement over the context-only calibrator
+- but mean new-learning target gap worsens and stability worsens
+- raw Model 2 remains the operational policy input
+
+So this note should now be read as:
+
+- a real calibration-loss result
+- not an operational promotion result
+
+Follow-up decision note:
+
+- [calibrated_policy_suite_decision.md](D:/model1_baseline_agent_bundle/reports/calibrated_policy_suite_decision.md)
 
 Reference outputs:
 

@@ -77,6 +77,45 @@ Reference:
 - [phase1_qmatrix_rpfa_operational_selection.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_operational_selection.md)
 - [phase1_qmatrix_rpfa_policy_alpha_comparison.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_policy_alpha_comparison.md)
 
+## Calibration-layer decision
+
+The repo also tested the user’s harder criterion:
+
+- if residual heterogeneity is supposed to matter for policy alignment
+- then the uncertainty side-channel must survive a rerun of the fixed new-learning policy suite
+
+That pass/fail test has now been run.
+
+Result:
+
+- the uncertainty side-channel gets a tiny `confidence_building` target-gap gain over the context-only calibrator:
+  - `0.005736` -> `0.005724`
+- but it fails the broader operational gate because:
+  - mean new-learning target gap gets worse:
+    - `0.005535` -> `0.005558`
+  - mean stability also gets worse:
+    - `0.003091` -> `0.003347`
+
+Stronger practical reading:
+
+- raw Model 2 still has the best mean new-learning target gap:
+  - `0.005427`
+- raw Model 2 also remains much more stable:
+  - `0.000850`
+
+So the operational decision is now plain:
+
+- keep **raw Model 2 probabilities** as the fixed-policy input
+- do **not** adopt the uncertainty calibration layer operationally
+- keep Model 3 only as:
+  - the richest scientific heterogeneity model
+  - an exploratory calibration / uncertainty branch
+
+Reference:
+
+- [uncertainty_calibration_layer.md](D:/model1_baseline_agent_bundle/reports/uncertainty_calibration_layer.md)
+- [calibrated_policy_suite_decision.md](D:/model1_baseline_agent_bundle/reports/calibrated_policy_suite_decision.md)
+
 ## First policy selection result
 
 The offline adaptive replay work is no longer limited to one simple rule.

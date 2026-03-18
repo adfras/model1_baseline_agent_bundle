@@ -149,8 +149,8 @@ There is now also a follow-up calibration-layer branch that uses Model 3 differe
 Current read:
 
 - that branch does produce a small held-out calibration-loss win over the strongest non-uncertainty calibrator
-- so residual heterogeneity is now useful in the repo in the way that matters most here:
-  - **policy-aligned calibration**
+- but a later fixed-policy rerun shows that this does **not** survive the operational gate
+- so residual heterogeneity is calibration-relevant here, but the current side-channel is still not good enough to keep in the operational path
 - this still does **not** make raw Model 3 the main scorer
 
 There is now also a first uncertainty-aware router prototype:
@@ -215,7 +215,7 @@ Until local data arrives, the sensible next work is:
 3. keep `24` hours as the current review-mode threshold unless later gating work changes it
 4. keep the tuned hybrid v2 router as an exploratory gating branch, not the default
 5. evaluate policy behavior by subgroup and route rather than only in pooled summaries
-6. keep Model 3 as a challenger when stability, uncertainty, or calibration alignment is the reason to use it
+6. keep Model 3 as a challenger when stability, uncertainty, or calibration alignment is the reason to use it, but do not keep those layers operationally unless they survive the fixed-policy gate
 
 ## Bottom line
 
@@ -228,4 +228,9 @@ The project is now focused on:
 The current best operational path is:
 
 - **explicit Q-matrix R-PFA Model 2**
-- with a **Model 3 uncertainty calibration layer** as the current best policy-alignment side-channel
+- with **raw Model 2 probabilities** as the current fixed-policy input
+
+The current Model 3 calibration side-channel remains:
+
+- a real calibration-loss finding
+- but an **operational failure** under the fixed-policy rerun

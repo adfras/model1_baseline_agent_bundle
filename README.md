@@ -31,6 +31,7 @@ Core docs:
 - [hybrid_uncertainty_router_v2.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router_v2.md)
 - [policy_alignment_calibration.md](D:/model1_baseline_agent_bundle/reports/policy_alignment_calibration.md)
 - [uncertainty_calibration_layer.md](D:/model1_baseline_agent_bundle/reports/uncertainty_calibration_layer.md)
+- [calibrated_policy_suite_decision.md](D:/model1_baseline_agent_bundle/reports/calibrated_policy_suite_decision.md)
 
 ## Current focus
 
@@ -38,7 +39,7 @@ Until local data is available, the repo is focused on three linked questions:
 
 1. Do full-data KC-aware public models support learner heterogeneity beyond baseline level?
 2. Which public learner model gives the best **operational** fit once KC history is represented properly?
-3. Which learner model is better for **offline next-question targeting**?
+3. Which frozen policy stack is actually worth keeping for **offline next-question targeting**?
 
 Current answers:
 

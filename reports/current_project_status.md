@@ -210,11 +210,55 @@ Interpretation:
 - this is the first actual calibration win from residual heterogeneity in the repo
 - the win comes from using **Model 3 uncertainty** to calibrate **Model 2**
 - not from replacing Model 2 with raw Model 3
-- the improvement is broad across the main policy contexts, but target-band gains are mixed and the fixed policy suite has not yet been rerun with these recalibrated probabilities
+- the improvement is broad across the main policy contexts, but target-band gains are mixed
+- this note alone is therefore not enough to justify operational use
 
 Reference:
 
 - [uncertainty_calibration_layer.md](D:/model1_baseline_agent_bundle/reports/uncertainty_calibration_layer.md)
+
+## Hard policy gate for the calibration side-channel
+
+The repo now includes the decisive follow-up:
+
+- rerun the fixed new-learning policy suite with the recalibrated probabilities
+- judge the uncertainty side-channel with a hard pass/fail rule
+
+Result:
+
+- the uncertainty side-channel **fails** the operational gate
+- it gets a tiny `confidence_building` target-gap improvement over the context-only calibrator:
+  - `0.005736` -> `0.005724`
+- but it fails the broader condition that matters:
+  - mean new-learning target gap gets worse:
+    - `0.005535` -> `0.005558`
+- and stability also worsens:
+  - `0.003091` -> `0.003347`
+
+Stronger practical reading:
+
+- raw Model 2 still has the best mean new-learning target gap:
+  - `0.005427`
+- raw Model 2 also stays much more stable:
+  - `0.000850`
+
+Interpretation:
+
+- residual heterogeneity still matters scientifically
+- the side-channel still gives a real calibration-loss win on logged actual-next rows
+- but for the actual fixed-policy job, that is **not enough**
+- the uncertainty calibration layer therefore fails as an operational policy component
+
+Operational decision:
+
+- keep **raw Model 2 probabilities** as the current policy input
+- keep Model 3 as:
+  - the richest scientific heterogeneity model
+  - an exploratory uncertainty / calibration branch only
+
+Reference:
+
+- [calibrated_policy_suite_decision.md](D:/model1_baseline_agent_bundle/reports/calibrated_policy_suite_decision.md)
 
 ## Spacing review-mode tuning
 
@@ -389,11 +433,11 @@ Until local data is available, the practical mainline is:
 3. keep **R-PFA Model 3** as the richer challenger
 4. use `24` hours as the current spacing-review threshold for review-mode experiments
 5. evaluate question-selection policies offline
-6. use uncertainty mainly for routing experiments, not as the main predictor
+6. keep uncertainty side-channels exploratory unless they survive a policy rerun
 7. keep fixed `confidence_building` as the default new-learning policy under the frozen scorer
 8. keep `balanced_challenge` and `harder_challenge` as comparators rather than the default
 9. treat tuned hybrid router v2 as an exploratory policy-gating branch, not the default
-10. treat the first conservative router v3 attempt and the later simple two-mode router as informative but non-promoted routing experiments
+10. treat the uncertainty calibration side-channel, the first conservative router v3 attempt, and the later simple two-mode router as informative but non-promoted experiments
 
 ## Phase 2 status
 
