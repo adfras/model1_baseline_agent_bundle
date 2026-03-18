@@ -153,6 +153,24 @@ Current read:
 - so residual heterogeneity is calibration-relevant here, but the current side-channel is still not good enough to keep in the operational path
 - this still does **not** make raw Model 3 the main scorer
 
+There is now also a later KC-constrained residual-heterogeneity restart:
+
+- same frozen Model 2 scorer
+- same `alpha = 0.9`
+- same `24`-hour review threshold
+- local residual / friction / self-report features
+- policy-specific calibrators
+- Model 3 only as one extra uncertainty feature
+
+Current read:
+
+- it gives residual heterogeneity a fairer operational test than the earlier global side-channel
+- it still does **not** survive the operational gate
+- the pooled target-gap change is small
+- the primary `confidence_building` policy gets worse target precision
+- stability worsens too much
+- Model 3 adds almost nothing beyond the local residual features
+
 There is now also a first uncertainty-aware router prototype:
 
 - Model 2 provides the mean success estimate
@@ -216,6 +234,7 @@ Until local data arrives, the sensible next work is:
 4. keep the tuned hybrid v2 router as an exploratory gating branch, not the default
 5. evaluate policy behavior by subgroup and route rather than only in pooled summaries
 6. keep Model 3 as a challenger when stability, uncertainty, or calibration alignment is the reason to use it, but do not keep those layers operationally unless they survive the fixed-policy gate
+7. keep the later KC-constrained residual-heterogeneity restart as a negative result, not as a new operational branch
 
 ## Bottom line
 
@@ -234,3 +253,8 @@ The current Model 3 calibration side-channel remains:
 
 - a real calibration-loss finding
 - but an **operational failure** under the fixed-policy rerun
+
+The later KC-constrained residual-heterogeneity restart remains:
+
+- a fairer operational test of local residual alignment
+- but still an **operational failure** on DBE

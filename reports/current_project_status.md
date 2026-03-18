@@ -260,6 +260,57 @@ Reference:
 
 - [calibrated_policy_suite_decision.md](D:/model1_baseline_agent_bundle/reports/calibrated_policy_suite_decision.md)
 
+## KC-constrained residual-heterogeneity restart
+
+The repo now includes the stricter restart branch requested after that earlier failure.
+
+This restart kept the learner model fixed:
+
+- scorer: explicit Q-matrix **R-PFA Model 2**
+- recency: `alpha = 0.9`
+- review threshold: `24` hours
+
+What changed was the policy-alignment evaluation setup:
+
+- new-learning policies only:
+  - `balanced_challenge`
+  - `harder_challenge`
+  - `confidence_building`
+- a deterministic **KC-constrained unseen slate**
+- local residual / friction / self-report features built from prior attempts only
+- policy-specific logistic calibrators
+- Model 3 used only as one extra uncertainty feature
+
+Current reading:
+
+- the slate is narrower than the full unseen pool, but still falls back often:
+  - mean candidate count `62.246`
+  - fallback rate `0.7965`
+- on logged actual-next rows, the best calibration-loss method is still the simple `policy_band_calibrated` branch:
+  - log loss `0.518609`
+  - Brier `0.173404`
+- the **primary challenger** (`local residuals + Model 3`) fails the operational gate against raw Model 2:
+  - `confidence_building` target gap worsens:
+    - `0.007667` -> `0.008901`
+  - pooled mean target gap improves only slightly:
+    - `0.010476` -> `0.010377`
+  - pooled stability worsens sharply:
+    - `0.004233` -> `0.009810`
+- the ablation also shows that Model 3 adds almost nothing beyond the local residual features:
+  - mean target-gap delta vs residual-only: about `+0.000001`
+  - mean policy-advantage delta vs residual-only: about `+0.000012`
+
+Interpretation:
+
+- this branch gives residual heterogeneity a fairer operational test than the earlier global side-channel
+- it still does **not** produce the required operational win
+- raw Model 2 remains the best policy input on DBE
+- residual heterogeneity remains scientifically important and calibration-relevant, but still exploratory operationally
+
+Reference:
+
+- [local_uncertainty_policy_suite_decision.md](D:/model1_baseline_agent_bundle/reports/local_uncertainty_policy_suite_decision.md)
+
 ## Spacing review-mode tuning
 
 Spacing review has now been tuned as its own review-mode problem on the operational Model 2 branch.
@@ -437,7 +488,7 @@ Until local data is available, the practical mainline is:
 7. keep fixed `confidence_building` as the default new-learning policy under the frozen scorer
 8. keep `balanced_challenge` and `harder_challenge` as comparators rather than the default
 9. treat tuned hybrid router v2 as an exploratory policy-gating branch, not the default
-10. treat the uncertainty calibration side-channel, the first conservative router v3 attempt, and the later simple two-mode router as informative but non-promoted experiments
+10. treat the uncertainty calibration side-channel, the local residual-heterogeneity restart, the first conservative router v3 attempt, and the later simple two-mode router as informative but non-promoted experiments
 
 ## Phase 2 status
 

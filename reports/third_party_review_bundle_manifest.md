@@ -33,6 +33,7 @@ This bundle is intended for external review of the current modelling workspace s
   - a policy-alignment calibration note comparing Model 2 and Model 3 on logged actual-next items in policy contexts
   - an uncertainty calibration-layer note showing Model 2 plus Model 3 uncertainty as a side-channel
   - a hard decision note on the calibrated fixed-policy rerun
+  - a later KC-constrained residual-heterogeneity restart with local residual features, policy-specific calibrators, and a decision note
   - policy summary outputs
   - hybrid uncertainty-router notes, including the v2 lagged-proxy branch
 - the KC-history feature validation note for recency and due-review fields
@@ -80,6 +81,16 @@ This bundle is intended for external review of the current modelling workspace s
   - it gets a tiny `confidence_building` target-gap gain over the context-only calibrator
   - but mean new-learning target gap worsens and stability worsens
   - raw Model 2 still remains the operational policy input
+- A later KC-constrained residual-heterogeneity restart then gives the idea a stricter operational test:
+  - a deterministic KC-constrained unseen slate
+  - local residual / friction / self-report features from prior attempts only
+  - policy-specific calibrators
+  - Model 3 as one extra uncertainty feature
+- That restart also fails the operational gate:
+  - pooled mean target gap improves only slightly
+  - `confidence_building` target precision gets worse
+  - stability worsens substantially
+  - Model 3 adds almost nothing beyond the local residual features
 - On the current operational Model 2 suite, there is no single universal best fixed policy: `confidence_building` and `balanced_challenge` split the target-gap wins, `harder_challenge` most often wins policy advantage, and remediation/review remain distinct service modes.
 - A first hybrid router using **Model 2 means plus Model 3 uncertainty** is included as a prototype, but it does not replace the fixed-policy suite as the default.
 - A later hybrid-router v2 branch adds lagged observable proxies and tuned thresholds.

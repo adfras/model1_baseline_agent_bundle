@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import hashlib
 import json
+from collections import deque
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from scipy.special import expit
+from scipy.optimize import minimize
+from scipy.special import expit, logit
 
 from kc_history_common import resolve_history_value_columns
 from qmatrix_common import ensure_parent, load_trials
@@ -56,6 +59,11 @@ def write_json(path: Path, payload: dict) -> None:
     ensure_parent(path)
     with path.open("w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2)
+
+
+def stable_student_bucket(student_id: str, *, modulo: int = 100) -> int:
+    digest = hashlib.sha1(student_id.encode("utf-8")).hexdigest()
+    return int(digest[:8], 16) % modulo
 
 
 def logistic_normal_mean(linear_mean: np.ndarray, variance: np.ndarray) -> np.ndarray:
@@ -121,6 +129,142 @@ def build_attempt_event_lookup(
 def student_average(values: pd.Series, student_ids: pd.Series) -> float:
     grouped = pd.DataFrame({"student_id": student_ids, "value": values}).groupby("student_id", sort=False)["value"].mean()
     return float(grouped.mean()) if len(grouped) else float("nan")
+
+
+def fit_logistic_calibrator(
+    X: np.ndarray,
+    y: np.ndarray,
+    *,
+    l2_penalty: float,
+) -> tuple[np.ndarray, float]:
+    X = np.asarray(X, dtype=np.float64)
+    y = np.asarray(y, dtype=np.float64)
+
+    def objective(beta: np.ndarray) -> float:
+        linear = X @ beta
+        p = expit(linear)
+        ll = y * np.log(np.clip(p, 1e-6, 1.0 - 1.0e-6)) + (1.0 - y) * np.log(np.clip(1.0 - p, 1e-6, 1.0 - 1.0e-6))
+        penalty = l2_penalty * float(np.sum(beta[1:] ** 2))
+        return -float(np.sum(ll)) + penalty
+
+    result = minimize(objective, x0=np.zeros(X.shape[1], dtype=np.float64), method="BFGS")
+    beta = result.x.astype(np.float64)
+    return beta, float(result.fun)
+
+
+def fit_calibration_summary(y: np.ndarray, p: np.ndarray) -> tuple[float, float]:
+    p = np.clip(np.asarray(p, dtype=np.float64), 1e-6, 1.0 - 1.0e-6)
+    y = np.asarray(y, dtype=np.float64)
+    z = logit(p)
+    X = np.column_stack([np.ones(len(z), dtype=np.float64), z])
+    beta, _ = fit_logistic_calibrator(X, y, l2_penalty=0.0)
+    return float(beta[0]), float(beta[1])
+
+
+def summarize_prediction_frame(frame: pd.DataFrame, probability_column: str) -> dict[str, float | int]:
+    y = frame["actual_correct"].to_numpy(dtype=np.float64)
+    p = np.clip(frame[probability_column].to_numpy(dtype=np.float64), 1e-6, 1.0 - 1.0e-6)
+    intercept, slope = fit_calibration_summary(y, p)
+    return {
+        "n": int(len(frame)),
+        "students": int(frame["student_id"].nunique()),
+        "mean_probability": float(np.mean(p)),
+        "observed_rate": float(np.mean(y)),
+        "brier": float(np.mean((p - y) ** 2)),
+        "log_loss": float(-np.mean(y * np.log(p) + (1.0 - y) * np.log(1.0 - p))),
+        "calibration_intercept": intercept,
+        "calibration_slope": slope,
+    }
+
+
+def mean_over_linked_kcs(item_kc_matrix: np.ndarray, values: np.ndarray) -> np.ndarray:
+    values = np.asarray(values, dtype=np.float64)
+    denominator = np.maximum(item_kc_matrix.sum(axis=1), 1.0)
+    return (item_kc_matrix @ values) / denominator
+
+
+def compute_frontier_scores(
+    recent_attempt_events: deque[list[dict]],
+    *,
+    num_kcs: int,
+    decay_alpha: float,
+) -> np.ndarray:
+    scores = np.zeros(num_kcs, dtype=np.float64)
+    for lag, event_rows in enumerate(reversed(recent_attempt_events)):
+        weight = float(np.power(decay_alpha, lag))
+        for row_event in event_rows:
+            kc_index = int(row_event["kc_index"])
+            scores[kc_index] += weight * (
+                float(row_event["kc_failure_increment"]) + 0.5 * float(row_event["kc_success_increment"])
+            )
+    return scores
+
+
+def build_kc_constrained_slate_mask(
+    *,
+    item_kc_matrix: np.ndarray,
+    item_levels: list[str],
+    item_exposure_counts: np.ndarray,
+    recent_attempt_events: deque[list[dict]],
+    decay_alpha: float,
+    frontier_top_kcs: int,
+    slate_min_candidate_count: int,
+) -> dict[str, object]:
+    unseen_mask = item_exposure_counts == 0
+    seen_recent_kcs: set[int] = set()
+    for event_rows in recent_attempt_events:
+        for row_event in event_rows:
+            seen_recent_kcs.add(int(row_event["kc_index"]))
+
+    if not seen_recent_kcs:
+        return {
+            "candidate_mask": unseen_mask.copy(),
+            "candidate_pool_mode": "full_unseen_pool",
+            "candidate_count": int(unseen_mask.sum()),
+            "kc_frontier_top5": "",
+            "kc_frontier_fallback_used": "full_unseen_no_recent_kc",
+        }
+
+    frontier_scores = compute_frontier_scores(
+        recent_attempt_events,
+        num_kcs=item_kc_matrix.shape[1],
+        decay_alpha=decay_alpha,
+    )
+    ranked_kcs = np.argsort(-frontier_scores)
+    top_kc_indices = [int(index) for index in ranked_kcs if frontier_scores[index] > 0.0][: int(frontier_top_kcs)]
+    if not top_kc_indices:
+        top_kc_indices = sorted(seen_recent_kcs)[: int(frontier_top_kcs)]
+
+    top_overlap_mask = unseen_mask & (item_kc_matrix[:, top_kc_indices].sum(axis=1) > 0.0)
+    candidate_count = int(np.sum(top_overlap_mask))
+    if candidate_count >= int(slate_min_candidate_count):
+        return {
+            "candidate_mask": np.asarray(top_overlap_mask, dtype=bool),
+            "candidate_pool_mode": "kc_frontier_top5_overlap",
+            "candidate_count": candidate_count,
+            "kc_frontier_top5": "|".join(str(index) for index in top_kc_indices),
+            "kc_frontier_fallback_used": "none",
+        }
+
+    seen_kc_indices = sorted(seen_recent_kcs)
+    any_seen_mask = unseen_mask & (item_kc_matrix[:, seen_kc_indices].sum(axis=1) > 0.0)
+    candidate_count = int(np.sum(any_seen_mask))
+    if candidate_count >= int(slate_min_candidate_count):
+        return {
+            "candidate_mask": np.asarray(any_seen_mask, dtype=bool),
+            "candidate_pool_mode": "kc_seen_last10_overlap",
+            "candidate_count": candidate_count,
+            "kc_frontier_top5": "|".join(str(index) for index in top_kc_indices),
+            "kc_frontier_fallback_used": "relaxed_to_seen_last10",
+        }
+
+    return {
+        "candidate_mask": unseen_mask.copy(),
+        "candidate_pool_mode": "full_unseen_pool",
+        "candidate_count": int(unseen_mask.sum()),
+        "kc_frontier_top5": "|".join(str(index) for index in top_kc_indices),
+        "kc_frontier_fallback_used": "relaxed_to_full_unseen",
+    }
 
 
 def summarize_policy_rows(rows: pd.DataFrame, *, max_eval_step: int) -> dict:

@@ -116,6 +116,49 @@ Reference:
 - [uncertainty_calibration_layer.md](D:/model1_baseline_agent_bundle/reports/uncertainty_calibration_layer.md)
 - [calibrated_policy_suite_decision.md](D:/model1_baseline_agent_bundle/reports/calibrated_policy_suite_decision.md)
 
+## Residual-heterogeneity restart decision
+
+The repo then ran the stricter restart branch:
+
+- same frozen scorer:
+  - **R-PFA Model 2**
+  - `alpha = 0.9`
+  - `24`-hour review threshold
+- KC-constrained unseen candidate slate
+- local residual / friction / self-report features built from prior attempts only
+- policy-specific logistic calibrators
+- Model 3 used only as one extra uncertainty feature
+
+This was the harder operational question:
+
+**Can local residual alignment plus Model 3 uncertainty beat raw Model 2 on the actual fixed new-learning decision problem?**
+
+Result:
+
+- the branch still **fails**
+- `confidence_building` target gap gets worse:
+  - `0.007667` -> `0.008901`
+- pooled mean target gap improves only slightly:
+  - `0.010476` -> `0.010377`
+- pooled stability worsens badly:
+  - `0.004233` -> `0.009810`
+
+The ablation also shows that adding Model 3 on top of the local residual features changes almost nothing operationally:
+
+- mean target-gap delta vs residual-only: about `+0.000001`
+- mean policy-advantage delta vs residual-only: about `+0.000012`
+- mean stability delta vs residual-only: about `-0.000055`
+
+So the stronger operational conclusion is now:
+
+- raw Model 2 remains the fixed-policy input
+- local residual alignment is not enough to displace it on DBE
+- Model 3 still does **not** earn an operational role beyond exploration
+
+Reference:
+
+- [local_uncertainty_policy_suite_decision.md](D:/model1_baseline_agent_bundle/reports/local_uncertainty_policy_suite_decision.md)
+
 ## First policy selection result
 
 The offline adaptive replay work is no longer limited to one simple rule.
@@ -331,6 +374,7 @@ Interpretation:
 Reference:
 
 - [uncertainty_calibration_layer.md](D:/model1_baseline_agent_bundle/reports/uncertainty_calibration_layer.md)
+- [local_uncertainty_policy_suite_decision.md](D:/model1_baseline_agent_bundle/reports/local_uncertainty_policy_suite_decision.md)
 
 ### Uncertainty-routing note
 

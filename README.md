@@ -32,6 +32,7 @@ Core docs:
 - [policy_alignment_calibration.md](D:/model1_baseline_agent_bundle/reports/policy_alignment_calibration.md)
 - [uncertainty_calibration_layer.md](D:/model1_baseline_agent_bundle/reports/uncertainty_calibration_layer.md)
 - [calibrated_policy_suite_decision.md](D:/model1_baseline_agent_bundle/reports/calibrated_policy_suite_decision.md)
+- [local_uncertainty_policy_suite_decision.md](D:/model1_baseline_agent_bundle/reports/local_uncertainty_policy_suite_decision.md)
 
 ## Current focus
 
@@ -52,6 +53,7 @@ Current answers:
 - On that branch, **R-PFA Model 2** remains the default policy model and **R-PFA Model 3** remains the richer challenger.
 - A later logged actual-next **policy-alignment calibration** check did **not** show a policy-context calibration advantage for Model 3, so it remains exploratory rather than operational.
 - A later **uncertainty calibration layer** check did show a small held-out calibration-loss win when Model 3 uncertainty was used as a side-channel on top of Model 2.
+- A later **KC-constrained residual-heterogeneity restart** then gave that idea a stricter operational test and still failed the fixed-policy gate, so raw Model 2 remains the policy input.
 - The latest simple two-mode router pass did **not** justify replacing the fixed policies; the current frozen default new-learning choice is fixed `confidence_building`.
 
 ## Current mainline results
@@ -97,7 +99,7 @@ Interpretation:
 - R-PFA Model 2 is the best current operational predictive model
 - R-PFA Model 3 remains the richer uncertainty/stability challenger
 - its overall branch calibration slope is closer to `1.0`, but a later policy-context actual-next calibration check does **not** show an operational calibration advantage
-- using Model 3 uncertainty as a **banded calibration side-channel** does improve held-out log loss and Brier over the strongest non-uncertainty calibrator
+- using Model 3 uncertainty as a **banded calibration side-channel** does improve held-out log loss and Brier over the strongest non-uncertainty calibrator, but neither that branch nor the later KC-constrained local-residual restart survives the operational policy gate
 
 Reference:
 
@@ -152,6 +154,11 @@ So the fixed-policy result is now:
   - scorer = **R-PFA Model 2**
   - review mode = `24`-hour `spacing_aware_review`
   - default new-learning choice = fixed `confidence_building`
+- a later KC-constrained residual-alignment restart with policy-specific calibrators and local residual features also failed the operational gate:
+  - `confidence_building` target gap worsened from `0.007667` to `0.008901`
+  - pooled mean target gap improved only slightly from `0.010476` to `0.010377`
+  - pooled stability worsened sharply from `0.004233` to `0.009810`
+  - adding Model 3 on top of local residual features was operationally negligible
 
 Reference:
 
@@ -162,6 +169,7 @@ Reference:
 - [simple_two_mode_router_decision_memo.md](D:/model1_baseline_agent_bundle/reports/simple_two_mode_router_decision_memo.md)
 - [policy_alignment_calibration.md](D:/model1_baseline_agent_bundle/reports/policy_alignment_calibration.md)
 - [uncertainty_calibration_layer.md](D:/model1_baseline_agent_bundle/reports/uncertainty_calibration_layer.md)
+- [local_uncertainty_policy_suite_decision.md](D:/model1_baseline_agent_bundle/reports/local_uncertainty_policy_suite_decision.md)
 
 ### Hybrid uncertainty routers
 
