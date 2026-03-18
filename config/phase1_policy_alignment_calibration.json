@@ -1,0 +1,16 @@
+{
+  "router_summary_path": "outputs/phase1_adaptive_policy/simple_two_mode_router_qmatrix_rpfa/router_selected_summary.json",
+  "router_base_rows_path": "outputs/phase1_adaptive_policy/simple_two_mode_router_qmatrix_rpfa/router_base_rows.csv",
+  "model2_policy_rows_path": "outputs/phase1_adaptive_policy/model2_qmatrix_rpfa/policy_suite_rows.csv",
+  "model3_policy_rows_path": "outputs/phase1_adaptive_policy/model3_qmatrix_rpfa/policy_suite_rows.csv",
+  "summary_output_path": "outputs/phase1_adaptive_policy/policy_alignment_calibration/policy_alignment_calibration_summary.json",
+  "comparison_output_path": "outputs/phase1_adaptive_policy/policy_alignment_calibration/policy_alignment_calibration_comparison.csv",
+  "reference_policy_name": "balanced_challenge",
+  "min_rows_per_context": 50,
+  "current_hint_rate_threshold": 0.25,
+  "current_selection_change_rate_threshold": 0.5,
+  "current_duration_inflation_threshold": 2.25,
+  "stricter_hint_rate_threshold": 0.35,
+  "stricter_selection_change_rate_threshold": 0.6,
+  "stricter_duration_inflation_threshold": 2.5
+}

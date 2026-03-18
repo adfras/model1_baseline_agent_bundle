@@ -235,6 +235,34 @@ For current predictive yield and offline question-selection work:
 
 That is the current repo focus.
 
+### Calibration-alignment note
+
+Residual heterogeneity is still important for the policy question because the policy layer acts on predicted probabilities, not only on rank ordering.
+
+So the repo now distinguishes between:
+
+- **mean scoring**
+- **policy-context calibration / uncertainty**
+
+A direct logged actual-next calibration check has now been added on the current policy contexts.
+
+Current reading:
+
+- this is the right question to ask of Model 3
+- but the current evidence still does **not** show a policy-context calibration advantage for Model 3
+- across all logged rows, Model 2 is better on Brier, log loss, and calibration slope
+- the same pattern mostly holds in the early-step, confidence-trigger, balanced-default, and high-friction contexts
+- review-due and high-failure contexts only show mixed, very small differences rather than a robust Model 3 advantage
+
+So the operational split remains:
+
+- **Model 2** = current scorer
+- **Model 3** = exploratory calibration / uncertainty challenger
+
+Reference:
+
+- [policy_alignment_calibration.md](D:/model1_baseline_agent_bundle/reports/policy_alignment_calibration.md)
+
 ### Uncertainty-routing note
 
 A first hybrid router using:

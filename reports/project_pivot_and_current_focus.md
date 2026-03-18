@@ -104,6 +104,7 @@ So the best current operational learner model is:
 Model 3 is still useful as:
 
 - a richer stability / uncertainty challenger
+- a calibration / trustworthiness question for policy alignment, not only a mean-scoring alternative
 
 ### Policy answer
 
@@ -131,6 +132,14 @@ Current answer:
 - the main target-gap contenders are now `confidence_building` and `balanced_challenge`
 - `harder_challenge` often wins on policy advantage
 - `failure_aware_remediation` and `spacing_aware_review` remain distinct service modes
+
+There is now also a direct calibration-alignment check on logged actual-next items inside the policy contexts used by the current routing logic.
+
+Current read:
+
+- calibration is the right lens to check if residual heterogeneity is supposed to help policy alignment
+- but the current context-specific check still does **not** show a Model 3 calibration advantage
+- so Model 3 remains the right **exploratory** uncertainty layer, not the operational scorer
 
 There is now also a first uncertainty-aware router prototype:
 
@@ -194,7 +203,7 @@ Until local data arrives, the sensible next work is:
 3. keep `24` hours as the current review-mode threshold unless later gating work changes it
 4. keep the tuned hybrid v2 router as an exploratory gating branch, not the default
 5. evaluate policy behavior by subgroup and route rather than only in pooled summaries
-6. keep Model 3 as a challenger when stability or uncertainty is the reason to use it
+6. keep Model 3 as a challenger when stability, uncertainty, or calibration alignment is the reason to use it
 
 ## Bottom line
 

@@ -29,6 +29,7 @@ Core docs:
 - [simple_two_mode_router_decision_memo.md](D:/model1_baseline_agent_bundle/reports/simple_two_mode_router_decision_memo.md)
 - [hybrid_uncertainty_router.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router.md)
 - [hybrid_uncertainty_router_v2.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router_v2.md)
+- [policy_alignment_calibration.md](D:/model1_baseline_agent_bundle/reports/policy_alignment_calibration.md)
 
 ## Current focus
 
@@ -47,6 +48,7 @@ Current answers:
 - The offline policy work now uses a **modular policy suite**, not only one fixed target-`0.7` replay.
 - The current selected review-mode threshold for `spacing_aware_review` is `24` hours on the operational Model 2 branch.
 - On that branch, **R-PFA Model 2** remains the default policy model and **R-PFA Model 3** remains the richer challenger.
+- A later logged actual-next **policy-alignment calibration** check did **not** show a policy-context calibration advantage for Model 3, so it remains exploratory rather than operational.
 - The latest simple two-mode router pass did **not** justify replacing the fixed policies; the current frozen default new-learning choice is fixed `confidence_building`.
 
 ## Current mainline results
@@ -91,6 +93,7 @@ Interpretation:
 - a direct Model 2 policy-suite comparison against `alpha = 0.8` also kept `0.9`
 - R-PFA Model 2 is the best current operational predictive model
 - R-PFA Model 3 remains the richer uncertainty/stability challenger
+- its overall branch calibration slope is closer to `1.0`, but a later policy-context actual-next calibration check does **not** show an operational calibration advantage
 
 Reference:
 
@@ -125,6 +128,7 @@ Interpretation:
 - this is an **offline target-control / policy-behavior test**, not proof of causal learning gain
 - the fixed shared suite above used the common `48`-hour review threshold
 - later review-mode tuning on the operational Model 2 branch selected `24` hours for `spacing_aware_review`
+- a later logged actual-next calibration check in the same policy contexts also kept Model 2 as the operational scorer
 
 The current subgroup diagnostics now make the policy split clearer:
 
@@ -151,6 +155,7 @@ Reference:
 - [policy_subgroup_diagnostics.md](D:/model1_baseline_agent_bundle/reports/policy_subgroup_diagnostics.md)
 - [conservative_router_v3_attempt.md](D:/model1_baseline_agent_bundle/reports/conservative_router_v3_attempt.md)
 - [simple_two_mode_router_decision_memo.md](D:/model1_baseline_agent_bundle/reports/simple_two_mode_router_decision_memo.md)
+- [policy_alignment_calibration.md](D:/model1_baseline_agent_bundle/reports/policy_alignment_calibration.md)
 
 ### Hybrid uncertainty routers
 

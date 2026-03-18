@@ -95,6 +95,7 @@ Interpretation:
 - Model 2 remains the default operational learner model
 - Model 3 remains a richer stability/uncertainty challenger rather than the automatic operational winner
 - on the policy-facing comparison, the new-learning target-gap difference between `0.8` and `0.9` stayed inside the tie margin while `0.9` was slightly better on policy advantage and stability
+- the overall branch calibration slope is closer to `1.0` for Model 3, but that alone is not enough to treat it as the operational model
 
 Reference:
 
@@ -156,6 +157,34 @@ Interpretation:
 Reference:
 
 - [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)
+
+## Policy-alignment calibration check
+
+Because probability thresholds are what drive the policy layer, the repo now also checks the narrower question:
+
+- does residual heterogeneity improve calibration on the logged actual-next items in the policy contexts that matter operationally?
+
+Current reading:
+
+- calibration is the right lens to check for policy alignment
+- but the current logged actual-next evaluation does **not** show a policy-context calibration advantage for Model 3
+- across all logged rows, Model 2 is better on Brier, log loss, and calibration slope
+- the same pattern mostly holds in:
+  - early-step contexts
+  - confidence-trigger contexts
+  - balanced-default contexts
+  - high-friction contexts
+- the review-due and high-failure contexts show only mixed, very small differences, not a clear Model 3 win
+
+Interpretation:
+
+- Model 3 remains important as the **scientific** stability / residual-heterogeneity model
+- Model 3 also remains the right **exploratory** uncertainty / calibration challenger
+- but the current policy-context calibration evidence still keeps **Model 2** as the operational scorer
+
+Reference:
+
+- [policy_alignment_calibration.md](D:/model1_baseline_agent_bundle/reports/policy_alignment_calibration.md)
 
 ## Spacing review-mode tuning
 
