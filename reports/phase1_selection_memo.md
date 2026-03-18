@@ -135,19 +135,23 @@ This was the harder operational question:
 
 Result:
 
+- the earlier version of this branch was invalid because the supposed policy-specific calibrators reused effectively identical actual-next rows across policies
+- the corrected rerun fixes that and still **fails**
 - the branch still **fails**
 - `confidence_building` target gap gets worse:
-  - `0.007667` -> `0.008901`
-- pooled mean target gap improves only slightly:
-  - `0.010476` -> `0.010377`
+  - `0.007667` -> `0.007829`
+- pooled mean target gap also gets worse:
+  - `0.010476` -> `0.011166`
+- pooled policy advantage gets much worse:
+  - `0.190638` -> `0.133794`
 - pooled stability worsens badly:
-  - `0.004233` -> `0.009810`
+  - `0.004233` -> `0.009808`
 
 The ablation also shows that adding Model 3 on top of the local residual features changes almost nothing operationally:
 
-- mean target-gap delta vs residual-only: about `+0.000001`
-- mean policy-advantage delta vs residual-only: about `+0.000012`
-- mean stability delta vs residual-only: about `-0.000055`
+- mean target-gap delta vs residual-only: about `+0.000130`
+- mean policy-advantage delta vs residual-only: about `+0.000443`
+- mean stability delta vs residual-only: about `+0.000193`
 
 So the stronger operational conclusion is now:
 

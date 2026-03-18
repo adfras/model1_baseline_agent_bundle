@@ -33,7 +33,7 @@ This bundle is intended for external review of the current modelling workspace s
   - a policy-alignment calibration note comparing Model 2 and Model 3 on logged actual-next items in policy contexts
   - an uncertainty calibration-layer note showing Model 2 plus Model 3 uncertainty as a side-channel
   - a hard decision note on the calibrated fixed-policy rerun
-  - a later KC-constrained residual-heterogeneity restart with local residual features, policy-specific calibrators, and a decision note
+  - a corrected KC-constrained residual-heterogeneity restart with local residual features, policy-specific calibrators, and a decision note, superseding an earlier invalid implementation
   - policy summary outputs
   - hybrid uncertainty-router notes, including the v2 lagged-proxy branch
 - the KC-history feature validation note for recency and due-review fields
@@ -86,8 +86,10 @@ This bundle is intended for external review of the current modelling workspace s
   - local residual / friction / self-report features from prior attempts only
   - policy-specific calibrators
   - Model 3 as one extra uncertainty feature
-- That restart also fails the operational gate:
-  - pooled mean target gap improves only slightly
+- The first implementation of that restart was invalid because the policy-specific calibrators reused effectively identical actual-next rows across policies.
+- The corrected rerun also fails the operational gate:
+  - pooled mean target gap worsens
+  - pooled policy advantage worsens
   - `confidence_building` target precision gets worse
   - stability worsens substantially
   - Model 3 adds almost nothing beyond the local residual features

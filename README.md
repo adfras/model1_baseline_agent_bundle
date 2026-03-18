@@ -53,7 +53,7 @@ Current answers:
 - On that branch, **R-PFA Model 2** remains the default policy model and **R-PFA Model 3** remains the richer challenger.
 - A later logged actual-next **policy-alignment calibration** check did **not** show a policy-context calibration advantage for Model 3, so it remains exploratory rather than operational.
 - A later **uncertainty calibration layer** check did show a small held-out calibration-loss win when Model 3 uncertainty was used as a side-channel on top of Model 2.
-- A later **KC-constrained residual-heterogeneity restart** then gave that idea a stricter operational test and still failed the fixed-policy gate, so raw Model 2 remains the policy input.
+- A later **KC-constrained residual-heterogeneity restart** was first implemented incorrectly because the policy-specific calibrators reused effectively identical actual-next training rows across policies; the corrected rerun still failed the fixed-policy gate, so raw Model 2 remains the policy input.
 - The latest simple two-mode router pass did **not** justify replacing the fixed policies; the current frozen default new-learning choice is fixed `confidence_building`.
 
 ## Current mainline results
@@ -154,11 +154,12 @@ So the fixed-policy result is now:
   - scorer = **R-PFA Model 2**
   - review mode = `24`-hour `spacing_aware_review`
   - default new-learning choice = fixed `confidence_building`
-- a later KC-constrained residual-alignment restart with policy-specific calibrators and local residual features also failed the operational gate:
-  - `confidence_building` target gap worsened from `0.007667` to `0.008901`
-  - pooled mean target gap improved only slightly from `0.010476` to `0.010377`
-  - pooled stability worsened sharply from `0.004233` to `0.009810`
-  - adding Model 3 on top of local residual features was operationally negligible
+- a corrected KC-constrained residual-alignment restart with policy-specific calibrators and local residual features still failed the operational gate:
+  - it superseded an earlier invalid implementation where the policy-specific calibrators reused effectively identical rows across policies
+  - `confidence_building` target gap still worsened from `0.007667` to `0.007829`
+  - pooled mean target gap also worsened from `0.010476` to `0.011166`
+  - pooled stability worsened sharply from `0.004233` to `0.009808`
+  - adding Model 3 on top of local residual features was still operationally negligible
 
 Reference:
 

@@ -164,10 +164,12 @@ There is now also a later KC-constrained residual-heterogeneity restart:
 
 Current read:
 
-- it gives residual heterogeneity a fairer operational test than the earlier global side-channel
+- the first implementation of this branch was invalid because the supposed policy-specific calibrators reused effectively identical actual-next rows across policies
+- the corrected rerun fixes that and gives residual heterogeneity a fairer operational test than the earlier global side-channel
 - it still does **not** survive the operational gate
-- the pooled target-gap change is small
-- the primary `confidence_building` policy gets worse target precision
+- the pooled target-gap change is now clearly worse
+- the primary `confidence_building` policy still gets worse target precision
+- pooled policy advantage also gets much worse
 - stability worsens too much
 - Model 3 adds almost nothing beyond the local residual features
 
@@ -256,5 +258,5 @@ The current Model 3 calibration side-channel remains:
 
 The later KC-constrained residual-heterogeneity restart remains:
 
-- a fairer operational test of local residual alignment
+- a corrected operational test of local residual alignment after an earlier invalid implementation
 - but still an **operational failure** on DBE

@@ -283,26 +283,28 @@ What changed was the policy-alignment evaluation setup:
 
 Current reading:
 
+- the earlier version of this branch was methodologically invalid because the supposed policy-specific calibrators reused effectively identical actual-next training rows across policies
+- the corrected rerun fixes that and now uses genuinely different policy-band training subsets
 - the slate is narrower than the full unseen pool, but still falls back often:
   - mean candidate count `62.246`
   - fallback rate `0.7965`
-- on logged actual-next rows, the best calibration-loss method is still the simple `policy_band_calibrated` branch:
-  - log loss `0.518609`
-  - Brier `0.173404`
+- on logged actual-next rows, the best calibration-loss method is still the simple `policy_band_calibrated` branch in the `balanced_challenge` and `confidence_building` bands
 - the **primary challenger** (`local residuals + Model 3`) fails the operational gate against raw Model 2:
   - `confidence_building` target gap worsens:
-    - `0.007667` -> `0.008901`
-  - pooled mean target gap improves only slightly:
-    - `0.010476` -> `0.010377`
+    - `0.007667` -> `0.007829`
+  - pooled mean target gap also worsens:
+    - `0.010476` -> `0.011166`
+  - pooled policy advantage worsens sharply:
+    - `0.190638` -> `0.133794`
   - pooled stability worsens sharply:
-    - `0.004233` -> `0.009810`
+    - `0.004233` -> `0.009808`
 - the ablation also shows that Model 3 adds almost nothing beyond the local residual features:
-  - mean target-gap delta vs residual-only: about `+0.000001`
-  - mean policy-advantage delta vs residual-only: about `+0.000012`
+  - mean target-gap delta vs residual-only: about `+0.000130`
+  - mean policy-advantage delta vs residual-only: about `+0.000443`
 
 Interpretation:
 
-- this branch gives residual heterogeneity a fairer operational test than the earlier global side-channel
+- this corrected branch gives residual heterogeneity a fairer operational test than the earlier global side-channel
 - it still does **not** produce the required operational win
 - raw Model 2 remains the best policy input on DBE
 - residual heterogeneity remains scientifically important and calibration-relevant, but still exploratory operationally

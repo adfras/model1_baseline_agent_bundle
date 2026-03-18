@@ -100,6 +100,11 @@ def clip_probability(probability: np.ndarray | float) -> np.ndarray:
     return np.clip(np.asarray(probability, dtype=np.float64), 1e-6, 1.0 - 1.0e-6)
 
 
+def probability_in_band(probability: np.ndarray | float, *, low: float, high: float) -> np.ndarray:
+    probability = np.asarray(probability, dtype=np.float64)
+    return (probability >= float(low)) & (probability <= float(high))
+
+
 def safe_recent_mean(values: deque[float], *, window: int, default: float) -> float:
     if not values:
         return float(default)
@@ -193,6 +198,75 @@ def build_design_matrix(
         feature_names.append(feature_name)
     X = np.column_stack(columns).astype(np.float64)
     return X, feature_names, standardization
+
+
+def select_policy_eligible_rows(
+    rows: pd.DataFrame,
+    *,
+    policy_name: str,
+    min_rows: int,
+) -> tuple[pd.DataFrame, str]:
+    selectors = [
+        (
+            "unseen_in_slate_and_band",
+            (rows["actual_item_unseen"] == 1)
+            & (rows["actual_item_in_slate"] == 1)
+            & (rows["actual_item_in_policy_band"] == 1),
+        ),
+        (
+            "unseen_and_band",
+            (rows["actual_item_unseen"] == 1) & (rows["actual_item_in_policy_band"] == 1),
+        ),
+        (
+            "unseen_and_in_slate",
+            (rows["actual_item_unseen"] == 1) & (rows["actual_item_in_slate"] == 1),
+        ),
+        (
+            "unseen_only",
+            rows["actual_item_unseen"] == 1,
+        ),
+        (
+            "all_actual_next_rows",
+            np.ones(len(rows), dtype=bool),
+        ),
+    ]
+
+    for mode_name, mask in selectors:
+        eligible = filter_policy_rows_by_mode(rows, mode_name=mode_name).copy()
+        if len(eligible) >= min_rows or mode_name == "all_actual_next_rows":
+            return eligible, mode_name
+
+    raise RuntimeError("Failed to select policy-specific calibration rows.")
+
+
+def filter_policy_rows_by_mode(rows: pd.DataFrame, *, mode_name: str) -> pd.DataFrame:
+    if mode_name == "unseen_in_slate_and_band":
+        mask = (rows["actual_item_unseen"] == 1) & (rows["actual_item_in_slate"] == 1) & (rows["actual_item_in_policy_band"] == 1)
+    elif mode_name == "unseen_and_band":
+        mask = (rows["actual_item_unseen"] == 1) & (rows["actual_item_in_policy_band"] == 1)
+    elif mode_name == "unseen_and_in_slate":
+        mask = (rows["actual_item_unseen"] == 1) & (rows["actual_item_in_slate"] == 1)
+    elif mode_name == "unseen_only":
+        mask = rows["actual_item_unseen"] == 1
+    elif mode_name == "all_actual_next_rows":
+        mask = np.ones(len(rows), dtype=bool)
+    else:
+        raise ValueError(f"Unknown policy row mode: {mode_name}")
+    return rows.loc[np.asarray(mask, dtype=bool)].copy()
+
+
+def validate_policy_training_sets(summary: dict[str, dict]) -> None:
+    attempt_sets = []
+    for policy_name, policy_summary in summary.items():
+        attempt_ids = tuple(sorted(int(value) for value in policy_summary["attempt_ids_used"]))
+        attempt_sets.append((policy_name, attempt_ids))
+
+    unique_attempt_sets = {attempt_ids for _, attempt_ids in attempt_sets}
+    if len(unique_attempt_sets) <= 1:
+        policy_names = ", ".join(policy_name for policy_name, _ in attempt_sets)
+        raise ValueError(
+            f"Policy-specific calibration rows are still identical across policies: {policy_names}."
+        )
 
 
 def apply_policy_calibrator(
@@ -528,6 +602,17 @@ def collect_policy_training_rows(
                 actual_item_in_slate = int(bool(slate_info["candidate_mask"][actual_item_index]))
 
                 for policy_name in config["policy_names"]:
+                    spec = POLICY_SPECS[str(policy_name)]
+                    actual_item_in_policy_band = int(
+                        probability_in_band(
+                            raw_actual_probability,
+                            low=float(spec["target_band_low"]),
+                            high=float(spec["target_band_high"]),
+                        ).reshape(-1)[0]
+                    )
+                    actual_item_policy_band_gap = float(
+                        abs(raw_actual_probability - float(spec["target_probability"]))
+                    )
                     records.append(
                         {
                             "student_id": student_id,
@@ -540,7 +625,11 @@ def collect_policy_training_rows(
                             "model2_raw_probability": raw_actual_probability,
                             "actual_item_unseen": actual_item_unseen,
                             "actual_item_in_slate": actual_item_in_slate,
-                            "training_row_mode": "unseen_and_in_slate",
+                            "actual_item_in_policy_band": actual_item_in_policy_band,
+                            "actual_item_policy_band_gap": actual_item_policy_band_gap,
+                            "policy_band_low": float(spec["target_band_low"]),
+                            "policy_band_high": float(spec["target_band_high"]),
+                            "training_row_mode": "unseen_in_slate_and_band",
                             "candidate_pool_mode": str(slate_info["candidate_pool_mode"]),
                             "candidate_count": int(slate_info["candidate_count"]),
                             "kc_frontier_top5": str(slate_info["kc_frontier_top5"]),
@@ -573,30 +662,23 @@ def fit_policy_calibrators(config: dict, training_rows: pd.DataFrame) -> tuple[d
         calibration_rows = policy_rows.loc[policy_rows["student_split"] == "calibration"].copy()
         evaluation_rows = policy_rows.loc[policy_rows["student_split"] == "evaluation"].copy()
 
-        eligible = calibration_rows.loc[
-            (calibration_rows["actual_item_unseen"] == 1) & (calibration_rows["actual_item_in_slate"] == 1)
-        ].copy()
-        training_row_mode = "unseen_and_in_slate"
-        if len(eligible) < min_rows:
-            eligible = calibration_rows.loc[calibration_rows["actual_item_unseen"] == 1].copy()
-            training_row_mode = "unseen_only"
-        if len(eligible) < min_rows:
-            eligible = calibration_rows.copy()
-            training_row_mode = "all_actual_next_rows"
-
-        evaluation_eligible = evaluation_rows.copy()
-        if training_row_mode == "unseen_and_in_slate":
-            evaluation_eligible = evaluation_rows.loc[
-                (evaluation_rows["actual_item_unseen"] == 1) & (evaluation_rows["actual_item_in_slate"] == 1)
-            ].copy()
-        elif training_row_mode == "unseen_only":
-            evaluation_eligible = evaluation_rows.loc[evaluation_rows["actual_item_unseen"] == 1].copy()
+        eligible, training_row_mode = select_policy_eligible_rows(
+            calibration_rows,
+            policy_name=str(policy_name),
+            min_rows=min_rows,
+        )
+        evaluation_eligible = filter_policy_rows_by_mode(evaluation_rows, mode_name=training_row_mode)
 
         calibrators[policy_name] = {}
         actual_next_summary[policy_name] = {
             "training_row_mode": training_row_mode,
             "calibration_rows_used": int(len(eligible)),
             "evaluation_rows_used": int(len(evaluation_eligible)),
+            "attempt_ids_used": sorted(int(value) for value in eligible["attempt_id"].drop_duplicates().tolist()),
+            "policy_band_match_rate_calibration": float(np.mean(eligible["actual_item_in_policy_band"].to_numpy(dtype=np.float64))),
+            "policy_band_match_rate_evaluation": float(np.mean(evaluation_eligible["actual_item_in_policy_band"].to_numpy(dtype=np.float64)))
+            if len(evaluation_eligible)
+            else float("nan"),
             "methods": {},
         }
         if len(evaluation_eligible):
@@ -645,6 +727,7 @@ def fit_policy_calibrators(config: dict, training_rows: pd.DataFrame) -> tuple[d
                     method_name,
                 )
 
+    validate_policy_training_sets(actual_next_summary)
     return calibrators, actual_next_summary
 
 
