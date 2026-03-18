@@ -28,6 +28,7 @@ This bundle is intended for external review of the current modelling workspace s
   - policy-facing alpha comparison (`0.8` vs `0.9`)
   - spacing review-threshold grid (`24 / 48 / 72 / 96`)
   - subgroup diagnostics for the current operational policy suite
+  - a decision note on the rejected conservative router v3 attempt
   - policy summary outputs
   - hybrid uncertainty-router notes, including the v2 lagged-proxy branch
 - the KC-history feature validation note for recency and due-review fields
@@ -73,6 +74,7 @@ This bundle is intended for external review of the current modelling workspace s
 - A first hybrid router using **Model 2 means plus Model 3 uncertainty** is included as a prototype, but it does not replace the fixed-policy suite as the default.
 - A later hybrid-router v2 branch adds lagged observable proxies and tuned thresholds.
 - The tuned v2 router improves target gap and policy advantage over the original hybrid, but it is still less stable than the simpler hybrid baseline and still does not replace the fixed-policy suite as the default.
+- A first conservative router v3 attempt was tried after the subgroup diagnostics, but it was worse than the existing baselines and was not kept as an active branch.
 - The single-KC branch still collapses to Model 1 and is treated as a restrictive sensitivity analysis.
 - The repo now distinguishes clearly between:
   - the richest supported heterogeneity model

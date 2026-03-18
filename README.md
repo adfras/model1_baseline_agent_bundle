@@ -25,6 +25,7 @@ Core docs:
 - [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)
 - [spacing_policy_due_review_grid.md](D:/model1_baseline_agent_bundle/reports/spacing_policy_due_review_grid.md)
 - [policy_subgroup_diagnostics.md](D:/model1_baseline_agent_bundle/reports/policy_subgroup_diagnostics.md)
+- [conservative_router_v3_attempt.md](D:/model1_baseline_agent_bundle/reports/conservative_router_v3_attempt.md)
 - [hybrid_uncertainty_router.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router.md)
 - [hybrid_uncertainty_router_v2.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router_v2.md)
 
@@ -133,13 +134,15 @@ The current subgroup diagnostics now make the policy split clearer:
 So the fixed-policy result is now:
 
 - there is **no single universal best policy**
-- the next step is a conservative router that switches between these modes only when the subgroup evidence supports it
+- a first conservative router v3 attempt was tried and rejected because it worsened the main replay metrics
+- the current operational baseline therefore remains the fixed policy suite, not a new router
 
 Reference:
 
 - [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)
 - [spacing_policy_due_review_grid.md](D:/model1_baseline_agent_bundle/reports/spacing_policy_due_review_grid.md)
 - [policy_subgroup_diagnostics.md](D:/model1_baseline_agent_bundle/reports/policy_subgroup_diagnostics.md)
+- [conservative_router_v3_attempt.md](D:/model1_baseline_agent_bundle/reports/conservative_router_v3_attempt.md)
 
 ### Hybrid uncertainty routers
 

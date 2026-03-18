@@ -202,13 +202,34 @@ Current reading:
 
 Interpretation:
 
-- the next policy move should be a **conservative router**
+- the subgroup diagnostics are useful for understanding where each fixed policy helps
 - review and remediation should stay distinct modes
-- new-learning mode should switch mainly between `balanced_challenge`, `confidence_building`, and `harder_challenge`
+- any later router should stay conservative and be judged against the fixed-suite baseline
+
+A first conservative router v3 attempt was then tried and rejected.
+
+Why it was rejected:
+
+- target gap `1-10`: `0.01633`
+- policy advantage `1-10`: `0.17335`
+- stability: `0.02701`
+
+That was worse than:
+
+- hybrid v1
+- tuned hybrid v2
+- and the fixed `balanced_challenge` baseline
+
+Interpretation:
+
+- the subgroup diagnostics are useful
+- but the first attempt to turn them into a single conservative router still degraded the main policy metrics
+- so the repo remains on the fixed suite plus subgroup diagnostics rather than carrying a v3 router branch forward
 
 Reference:
 
 - [policy_subgroup_diagnostics.md](D:/model1_baseline_agent_bundle/reports/policy_subgroup_diagnostics.md)
+- [conservative_router_v3_attempt.md](D:/model1_baseline_agent_bundle/reports/conservative_router_v3_attempt.md)
 
 ## Uncertainty-aware routing prototypes
 
@@ -267,7 +288,7 @@ Until local data is available, the practical mainline is:
 5. evaluate question-selection policies offline
 6. use uncertainty mainly for routing experiments, not as the main predictor
 7. treat tuned hybrid router v2 as an exploratory policy-gating branch, not the default
-8. use the subgroup diagnostics to design a simpler router v3 instead of searching for one universal policy winner
+8. treat the first conservative router v3 attempt as rejected and keep the fixed suite as the operational baseline
 
 ## Phase 2 status
 

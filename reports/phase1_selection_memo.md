@@ -137,7 +137,33 @@ So the policy implication is:
 
 - keep the fixed Model 2 suite as the current baseline
 - stop looking for one universal winner
-- use the subgroup diagnostics as the basis for a conservative router v3
+- use the subgroup diagnostics as a routing diagnostic, not as proof that a new router will help
+
+A first conservative router v3 attempt was then tried and rejected.
+
+Why it was rejected:
+
+- target gap `1-10`: `0.01633`
+- policy advantage `1-10`: `0.17335`
+- stability: `0.02701`
+
+That was worse than:
+
+- hybrid v1
+- tuned hybrid v2
+- fixed `balanced_challenge`
+
+So the current repo position is:
+
+- fixed Model 2 policies remain the operational default
+- hybrid v1 remains the more stable hybrid baseline
+- tuned hybrid v2 remains the current exploratory routing branch
+- conservative router v3 is documented as a rejected attempt, not a carry-forward branch
+
+Reference:
+
+- [policy_subgroup_diagnostics.md](D:/model1_baseline_agent_bundle/reports/policy_subgroup_diagnostics.md)
+- [conservative_router_v3_attempt.md](D:/model1_baseline_agent_bundle/reports/conservative_router_v3_attempt.md)
 
 ## Current decision
 
@@ -186,6 +212,7 @@ So the current position is:
 - fixed Model 2 policies remain the operational default
 - hybrid v1 remains the more stable hybrid baseline
 - tuned hybrid v2 is the current exploratory routing branch for later gating work
+- the first conservative router v3 attempt is documented only as a rejected follow-up, not an active branch
 
 ## Remaining caveats
 

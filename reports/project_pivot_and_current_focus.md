@@ -150,6 +150,13 @@ Current read:
 - it is still materially less stable than v1 and much less target-precise than the fixed Model 2 policies
 - so it stays an exploratory routing branch rather than the new default
 
+There was also a first conservative router v3 attempt after the subgroup diagnostics.
+
+Current read:
+
+- it was worse than hybrid v1, tuned hybrid v2, and the fixed `balanced_challenge` baseline
+- so it was rejected and not kept as an active repo branch
+
 ## What is paused
 
 These are still in the repo, but they are not the active workstream right now:
@@ -173,10 +180,9 @@ Until local data arrives, the sensible next work is:
    - failure-aware remediation
    - spacing-aware review
 3. keep `24` hours as the current review-mode threshold unless later gating work changes it
-4. use the new subgroup diagnostics to build a conservative router v3
-5. keep the tuned hybrid v2 router as an exploratory gating branch, not the default
-6. evaluate policy behavior by subgroup and route rather than only in pooled summaries
-7. keep Model 3 as a challenger when stability or uncertainty is the reason to use it
+4. keep the tuned hybrid v2 router as an exploratory gating branch, not the default
+5. evaluate policy behavior by subgroup and route rather than only in pooled summaries
+6. keep Model 3 as a challenger when stability or uncertainty is the reason to use it
 
 ## Bottom line
 
