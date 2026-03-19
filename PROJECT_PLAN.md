@@ -1,197 +1,116 @@
-# Project Plan: Full-Data Heterogeneity Discovery, Then RPFA Policy Prototyping
+# Project Plan
 
-## Summary
+## Current Mainline
 
-The original scientific question remains:
+This repository is now organized around a smaller core:
 
-**Do learners differ in baseline level, growth, and stability in public longitudinal data, and do those same forms of heterogeneity replicate in a new student sample?**
+1. **public heterogeneity discovery**
+2. **learner-state estimation**
+3. **decision-native successor design**
 
-But the current project state adds an important operational pivot:
+The repo is **not** currently trying to claim an adaptive next-question win on DBE.
 
-- local data is not yet available
-- the full-data public branch now supports richer learner heterogeneity
-- the best predictive yield came from better KC-history features, not from warm-start work
+## Main Questions
 
-So the **current mainline focus** is:
+### Phase 1
 
-1. keep the public heterogeneity ladder scientifically coherent
-2. use the full dataset with explicit multi-KC structure
-3. upgrade the operational learner-model branch from plain PFA to **R-PFA**
-4. make learner-state estimates operational for **offline next-question targeting**
-5. hold local replication and warm-start as dormant scaffolding until local data exists
+Use the full visible DBE dataset to answer:
 
-## Current framing
+- do learners differ in baseline level?
+- do learners differ in growth?
+- do learners differ in stability?
 
-There are now two linked but distinct evaluation targets.
+### Phase 2A
 
-### 1. Scientific ladder
+Only if Phase 1 supports Model 2 or Model 3 cleanly:
 
-Use the nested models as heterogeneity tests:
+- do those same learner differences replicate in a local sample?
 
-- **Model 1:** baseline level heterogeneity
-- **Model 2:** growth heterogeneity
-- **Model 3:** stability heterogeneity
+### Phase 2B
 
-Decision rule:
+Only after local replication:
 
-- an added heterogeneity SD must clear the practical floor
-- the richer model must clear the predictive gate
+- do public-informed priors recover those learner differences earlier than weak-prior local fitting?
 
-### 2. Operational question-selection bridge
+## Current Public-Data Structure
 
-Once a public learner model is supported, ask:
+The public mainline uses:
 
-- which learner model gives the best **question-selection behavior**?
-- can it pick next items at the desired difficulty for each learner?
+- the full visible DBE dataset
+- all linked KCs per item
+- the explicit Q-matrix heterogeneity ladder as the scientific source of truth
 
-This is currently evaluated by **offline replay**, not by live experimentation.
+Scientific ladder:
 
-Operational rule:
+- **Model 1**: baseline heterogeneity
+- **Model 2**: growth heterogeneity
+- **Model 3**: stability heterogeneity
 
-- default deployment candidate: **Model 2**
-- richer challenger: **Model 3**
-- Model 3 is only preferred if it wins on policy-facing replay metrics or gives a calibration gain that matters to the chosen policy
+Current scientific result:
 
-## Phase 1: public discovery and learner-model development
+- Model 2 survives over Model 1
+- Model 3 survives over Model 2
 
-### Main public data representation
+So the public DBE data support:
 
-Use the **full visible DBE-KT22 attempt table** and retain **all linked KCs per item**.
+- baseline heterogeneity
+- growth heterogeneity
+- stability heterogeneity
 
-Current operational branches:
+Reference:
 
-1. **explicit Q-matrix opportunity branch**
-   - KC structure enters the likelihood directly
-   - used to establish that Models 2 and 3 survive on the full dataset
+- [phase1_multikc_qmatrix_comparison.md](D:/model1_baseline_agent_bundle/reports/phase1_multikc_qmatrix_comparison.md)
 
-2. **explicit Q-matrix PFA / R-PFA branch**
-   - retains the explicit Q-matrix structure
-   - replaces opportunity-only history with KC-specific prior wins and fails
-   - adds KC-opportunity-lag recency weighting for the operational R-PFA branch
-   - current best-yield predictive branch family
+## Current Operational Replay Baseline
 
-Sensitivity branches remain in the repo:
+The replay branch remains in the repo only as bridge evidence.
 
-- single-KC-only
-- deterministic primary-KC
-- collapsed-feature multi-KC
-- fractional multi-KC
-- repeated-practice restrictive subset
+Frozen replay baseline:
 
-### Current Phase 1 results
+- scorer: raw explicit Q-matrix **R-PFA Model 2**
+- `alpha = 0.9`
+- review threshold: `24` hours
+- default new-learning policy: fixed `confidence_building`
+- Model 3: scientific / exploratory only
 
-#### Explicit Q-matrix ladder
+Current replay conclusion:
 
-- Model 1 log loss `0.545311`
-- Model 2 log loss `0.544366`
-- Model 3 log loss `0.543782`
+- DBE still does **not** support an operational adaptive-question-selection win
 
-Interpretation:
+Reference:
 
-- baseline heterogeneity is present
-- growth heterogeneity is supported
-- stability heterogeneity is also supported
+- [phase1_qmatrix_rpfa_operational_selection.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_operational_selection.md)
+- [current_objective_and_failure_mode.md](D:/model1_baseline_agent_bundle/reports/current_objective_and_failure_mode.md)
 
-#### Best-yield branch family: explicit Q-matrix PFA / R-PFA
+## Current Deliverables
 
-- plain PFA established that the main predictive gain came from improving the KC-history signal
-- the current operational mainline is now the **R-PFA tuning / fit branch**
-- the selected R-PFA alpha controls how strongly recent KC outcomes outweigh older ones
+The outputs that matter most now are:
 
-### Current Phase 1 decision reading
+- full-data preprocessing
+- explicit Q-matrix scientific fits and summaries
+- R-PFA tuning summaries
+- learner-state profile exports
+- a small set of policy-failure notes documenting what did not survive operationally
+- a design spec for a future decision-native system
 
-Separate two conclusions clearly:
+## What Is Paused
 
-1. **heterogeneity conclusion**
-   - full-data explicit Q-matrix evidence supports Model 2 and then Model 3
+Paused until local data exists:
 
-2. **operational model choice**
-   - explicit Q-matrix R-PFA Model 2 is the default mainline model when predictive yield and downstream policy use matter most
-   - explicit Q-matrix R-PFA Model 3 is the uncertainty/stability challenger
+- local structural replication
+- local warm-start transfer
 
-That means Model 3 is still scientifically useful, but it is no longer the default answer to every operational question.
+Scaffolding remains:
 
-## Phase 1.5: offline next-question policy evaluation
+- [phase2_protocol.md](D:/model1_baseline_agent_bundle/reports/phase2_protocol.md)
+- [preprocess_phase2_local.py](D:/model1_baseline_agent_bundle/src/preprocess_phase2_local.py)
+- [split_phase2_local.py](D:/model1_baseline_agent_bundle/src/split_phase2_local.py)
 
-Because the end goal is user-specific question selection, the project now includes a narrow offline policy layer.
+## Practical Priority Order
 
-### Current replay task
+Until local data arrives, the repo should stay focused on:
 
-For each held-out student:
-
-1. update the student state after each observed attempt
-2. score candidate items with the fitted learner model
-3. apply a small modular policy family rather than one fixed target rule
-
-Current v1 policy suite:
-
-- balanced challenge
-- harder challenge
-- confidence-building
-- failure-aware remediation
-- spacing-aware review
-
-This replay layer measures:
-
-- target-difficulty control
-- band-hit rate
-- recommendation stability
-- remediation and review coverage
-- fallback behavior
-
-It does **not** yet measure:
-
-- causal learning gains
-- engagement effects with ground-truth labels
-- long-term retention
-
-## Current focus
-
-Until local data arrives, the repo should prioritize:
-
-1. explicit Q-matrix R-PFA as the operational learner-model mainline
-2. Model 2 as the default policy model
-3. Model 3 as the richer challenger when stability or uncertainty matters
-4. offline policy comparisons such as:
-   - balanced target difficulty
-   - slightly harder challenge
-   - easier confidence-building
-   - failure-aware remediation
-   - spacing-aware review
-5. engagement-proxy work only through observable history and behavior proxies, not invented labels
-
-## Phase 2: currently paused
-
-### Phase 2A: local structural replication
-
-Still the correct long-term replication step:
-
-- rerun the local ladder up to the public-supported level
-- benchmark with Model 1
-- evaluate whether the richer structure replicates locally
-
-### Phase 2B: local warm-start
-
-Still the correct later application step:
-
-- weak-prior local fit
-- public-informed fit
-- early-attempt comparison on held-out local students
-
-### Why it is paused
-
-- no local dataset is currently available in this workspace
-- the repo’s immediate value comes from getting the public learner model and offline policy logic right first
-
-## Deliverables that now matter most
-
-- full-data KC-aware preprocessing
-- explicit Q-matrix fit/eval scripts
-- PFA / R-PFA fit/eval scripts
-- adaptive replay scripts
-- comparison notes for:
-  - heterogeneity ladder
-  - improvement trials
-  - R-PFA alpha tuning
-  - offline policy suite replay
-- a pivot note documenting what the project is focused on now
+1. keeping the scientific explicit-Q ladder coherent
+2. keeping learner-state exports clean and reproducible
+3. keeping the replay baseline documented without letting it retake the repo
+4. treating future next-item work as a decision-native redesign problem, not another bolt-on replay tweak

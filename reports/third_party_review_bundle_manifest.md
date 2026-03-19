@@ -2,105 +2,63 @@
 
 This bundle is intended for external review of the current modelling workspace state.
 
+It is now a **slim review bundle**, not a full exploration archive.
+
+Use this zip when you want a reviewer to see the current state without dragging through every superseded branch.
+
 ## Included
 
 - project contract and plan
-- the new pivot note describing what the project is focused on now
-- model definitions and shared utilities
+- the current mainline repo notes:
+  - focus / status / selection memo
+  - the plain-language current-objective and failure-mode note
+  - the ManyLabs-vs-DBE alignment note
+  - the decision-native successor spec
 - all repository `src/*.py` scripts
 - all repository `config/*.json` configs
-- internal run notes and comparison reports
-- the revised public-data model-development path:
-  - full-dataset multi-KC preprocessing
-  - collapsed-feature multi-KC reruns
-  - explicit Q-matrix reruns for Models 1 / 2 / 3
-  - targeted explicit-Q improvement trials:
-    - PFA-style wins/fails history
-    - R-PFA alpha tuning
-    - fractional KC-credit sensitivity
-    - finer Model 3 state bins
-  - fractional multi-KC sensitivity reruns on the same rows and split
-  - single-KC sensitivity reruns
-  - branch guide and historical branch adjudication notes
-- the new offline adaptive-policy work:
-  - replay configs for R-PFA Model 2 and Model 3
-  - modular policy-suite comparison note
-  - policy-facing alpha comparison (`0.8` vs `0.9`)
-  - spacing review-threshold grid (`24 / 48 / 72 / 96`)
-  - subgroup diagnostics for the current operational policy suite
-  - a decision note on the rejected conservative router v3 attempt
-  - the simple two-mode router threshold search and decision memo
-  - a policy-alignment calibration note comparing Model 2 and Model 3 on logged actual-next items in policy contexts
-  - an uncertainty calibration-layer note showing Model 2 plus Model 3 uncertainty as a side-channel
-  - a hard decision note on the calibrated fixed-policy rerun
-  - a corrected KC-constrained residual-heterogeneity restart with local residual features, policy-specific calibrators, and a decision note, superseding an earlier invalid implementation
-  - policy summary outputs
-  - hybrid uncertainty-router notes, including the v2 lagged-proxy branch
-- the KC-history feature validation note for recency and due-review fields
-- the dormant Phase 2 scaffolding:
-  - local schema normalization template
-  - 3-way student split template
-  - transfer protocol note
-- lightweight output summaries such as:
-  - fit summaries
-  - evaluation summaries
-  - diagnostics summaries
-  - overall metrics tables
-  - calibration tables
-  - calibration figures
-  - structural and volatility summaries where available
+- the core public-data scientific ladder notes:
+  - full multi-KC schema note
+  - explicit Q-matrix comparison note
+  - RPFA tuning and operational-selection notes
+- the learner-state export note and exported profile tables
+- only the policy notes needed to explain the current negative result:
+  - policy-alignment calibration
+  - calibrated fixed-policy decision
+  - corrected local-uncertainty restart decision
+  - direct heterogeneity policy decision
+- only the summary outputs needed to support those notes
+- the public preprocessing summary JSON
 
 ## Excluded
 
 - raw data under `data/`
-- processed learner-attempt tables
+- processed learner-attempt tables except the top-level sample summary JSON
 - large posterior artifacts such as:
   - `*.nc`
   - `*.npz`
+- row-level policy replay CSVs
+- superseded router branches and their outputs
+- exploratory historical reports that are no longer needed to understand the current state
 - virtual environment files
+
+If a reviewer later needs the full exploration trail, keep using the workspace or the separate full archive bundle rather than overloading this slim zip again.
 
 ## Important context
 
 - The bundle reflects the current workspace state, not only the last pushed commit.
 - The repo originally centered heterogeneity discovery and conditional local transfer.
-- With no local dataset currently available in the workspace, the practical focus has shifted to:
-  - full-data public learner-model development
-  - explicit Q-matrix KC-aware modeling
-  - better KC-history features
-  - offline next-question policy replay
-- The full-data explicit Q-matrix ladder supports Model 2 and then Model 3.
+- With no local dataset currently available, the practical focus is now:
+  - full-data public heterogeneity discovery
+  - learner-state estimation from the scientific explicit-Q ladder
+  - decision-native successor design
+  - offline next-question replay only as a bridge / negative-result track
+- The full-data explicit Q-matrix ladder supports Model 2 and then Model 3 scientifically.
 - The strongest predictive improvement came from **PFA / R-PFA wins/fails history**.
 - The selected operational R-PFA alpha is `0.9`.
-- A later policy-facing comparison against `0.8` kept `0.9`.
-- The current selected spacing-review threshold on the operational Model 2 branch is `24` hours.
-- On that branch, **R-PFA Model 2** beats **R-PFA Model 3** on log loss, Brier, and AUC, while **R-PFA Model 3** has the better overall branch calibration slope.
-- On the modular offline policy suite, **R-PFA Model 2** remains the default next-question policy model.
-- A later logged actual-next policy-alignment calibration check does **not** show a policy-context calibration advantage for Model 3, so it remains exploratory rather than operational.
-- A later calibration-layer branch does show a small held-out calibration-loss win when **Model 3 uncertainty** is used as a side-channel on top of **Model 2**.
-- A later fixed-policy rerun shows that this uncertainty side-channel does **not** survive the operational gate:
-  - it gets a tiny `confidence_building` target-gap gain over the context-only calibrator
-  - but mean new-learning target gap worsens and stability worsens
-  - raw Model 2 still remains the operational policy input
-- A later KC-constrained residual-heterogeneity restart then gives the idea a stricter operational test:
-  - a deterministic KC-constrained unseen slate
-  - local residual / friction / self-report features from prior attempts only
-  - policy-specific calibrators
-  - Model 3 as one extra uncertainty feature
-- The first implementation of that restart was invalid because the policy-specific calibrators reused effectively identical actual-next rows across policies.
-- The corrected rerun also fails the operational gate:
-  - pooled mean target gap worsens
-  - pooled policy advantage worsens
-  - `confidence_building` target precision gets worse
-  - stability worsens substantially
-  - Model 3 adds almost nothing beyond the local residual features
-- On the current operational Model 2 suite, there is no single universal best fixed policy: `confidence_building` and `balanced_challenge` split the target-gap wins, `harder_challenge` most often wins policy advantage, and remediation/review remain distinct service modes.
-- A first hybrid router using **Model 2 means plus Model 3 uncertainty** is included as a prototype, but it does not replace the fixed-policy suite as the default.
-- A later hybrid-router v2 branch adds lagged observable proxies and tuned thresholds.
-- The tuned v2 router improves target gap and policy advantage over the original hybrid, but it is still less stable than the simpler hybrid baseline and still does not replace the fixed-policy suite as the default.
-- A first conservative router v3 attempt was tried after the subgroup diagnostics, but it was worse than the existing baselines and was not kept as an active branch.
-- A later simple two-mode router, built on the frozen Model 2 RPFA scorer, improved new-learning target gap only marginally and did not survive operationally because stability worsened too much.
-- The single-KC branch still collapses to Model 1 and is treated as a restrictive sensitivity analysis.
-- The repo now distinguishes clearly between:
-  - the richest supported heterogeneity model
-  - the best current operational model for question targeting
-- Phase 2 local fitting is scaffolded but not run, because no local dataset is bundled here.
+- The selected spacing-review threshold on the operational Model 2 branch is `24` hours.
+- The repo now exports learner-level baseline, growth, stability, and latent-state tables directly from the scientific explicit-Q posterior files.
+- The current replay conclusion remains negative:
+  - raw `R-PFA Model 2` stays the operational baseline
+  - Model 3 remains the richer scientific model
+  - calibration-side and local-residual branches did not survive operationally
+  - a later direct heterogeneity utility branch also failed to beat the frozen baseline

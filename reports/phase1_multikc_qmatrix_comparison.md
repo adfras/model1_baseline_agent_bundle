@@ -170,4 +170,3 @@ So the current explicit-Q position is:
 Operational note:
 
 - for the current operational RPFA selection, see [phase1_qmatrix_rpfa_operational_selection.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_operational_selection.md)
-- for the current policy-facing comparison, see [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)

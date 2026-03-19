@@ -22,7 +22,7 @@ The question here is therefore narrower than the earlier policy-suite comparison
 - source policy rows:
   - fixed-suite `balanced_challenge` rows, used here only as the common logged actual-next prediction source
 - policy-context definitions:
-  - selected simple-router thresholds from [router_selected_summary.json](D:/model1_baseline_agent_bundle/outputs/phase1_adaptive_policy/simple_two_mode_router_qmatrix_rpfa/router_selected_summary.json)
+  - selected simple-router thresholds from the frozen replay branch
   - early-step cutoff `5`
   - low-proficiency threshold `0.71797`
   - recent-failure threshold `45.24461`
@@ -140,4 +140,3 @@ Current operational freeze remains:
 Reference outputs:
 
 - [policy_alignment_calibration_summary.json](D:/model1_baseline_agent_bundle/outputs/phase1_adaptive_policy/policy_alignment_calibration/policy_alignment_calibration_summary.json)
-- [policy_alignment_calibration_comparison.csv](D:/model1_baseline_agent_bundle/outputs/phase1_adaptive_policy/policy_alignment_calibration/policy_alignment_calibration_comparison.csv)

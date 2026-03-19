@@ -1,0 +1,12 @@
+{
+  "model2_posterior_draws_path": "outputs/phase1_multikc_qmatrix/model2/model2_posterior_draws.npz",
+  "model3_posterior_draws_path": "outputs/phase1_multikc_qmatrix/model3/model3_posterior_draws.npz",
+  "model2_student_slope_summary_path": "outputs/phase1_multikc_qmatrix/model2/model2_student_slope_summary.csv",
+  "model3_volatility_summary_path": "outputs/phase1_multikc_qmatrix/model3/model3_volatility_summary.csv",
+  "model2_profile_output_path": "outputs/phase1_multikc_qmatrix_profiles/model2_learner_profiles.csv",
+  "model3_profile_output_path": "outputs/phase1_multikc_qmatrix_profiles/model3_learner_profiles.csv",
+  "model3_latent_state_output_path": "outputs/phase1_multikc_qmatrix_profiles/model3_latent_state_profiles.csv",
+  "summary_json_path": "outputs/phase1_multikc_qmatrix_profiles/learner_profile_summary.json",
+  "validation_json_path": "outputs/phase1_multikc_qmatrix_profiles/learner_profile_validation.json",
+  "summary_markdown_path": "reports/phase1_qmatrix_learner_state_profiles.md"
+}

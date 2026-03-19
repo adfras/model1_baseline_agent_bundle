@@ -6,6 +6,12 @@ This repository runs a small modelling programme for binary learner-response dat
 
 The project is framed around **heterogeneity discovery first, then conditional replication and warm-start transfer**.
 
+On the current DBE mainline, that now means:
+
+- public heterogeneity discovery
+- learner-state estimation from the scientific explicit-Q ladder
+- offline policy replay only as a bridge / exploratory track
+
 The core questions are:
 
 1. **Phase 1:** Do learners differ in baseline level, growth, and stability in public longitudinal data?
@@ -24,6 +30,7 @@ Stay inside these boundaries unless the user explicitly expands scope:
 - The first paper is about heterogeneity discovery, replication, and transfer
 - This is not a full personalised learning system
 - Offline next-question policy replay is allowed as a bridge task when the user explicitly wants to explore question selection without new local data
+- The current DBE mainline is **not** “prove an adaptive next-question win”; it is heterogeneity discovery plus learner-state estimation
 
 ## Phase structure
 
@@ -220,6 +227,10 @@ Unless the user asks otherwise, produce:
 - Keep the **scientific heterogeneity ladder** separate from the **operational policy model**:
   - scientific conclusion comes from the explicit Q-matrix heterogeneity ladder
   - operational learner-model choice comes from the explicit Q-matrix PFA / R-PFA branch
+- Keep the **scientific heterogeneity ladder** separate from the repo’s **mainline deliverable** on DBE:
+  - scientific conclusion still comes from the explicit Q-matrix ladder
+  - current DBE deliverable is learner-state estimation from that ladder
+  - offline replay remains bridge evidence only unless stronger decision-native data exist
 - Default operational rule:
   - Model 2 is the default policy model
   - Model 3 is only preferred if it wins on the policy-facing replay metrics or gives a calibration benefit that matters to the chosen policy
@@ -232,6 +243,7 @@ When the user explicitly wants question-selection work before local data exists:
 - compare a small family of modular policies, not one monolithic optimizer
 - keep claims limited to **offline target-control / policy-behavior evaluation**
 - do not claim causal learning gains without suitable logging propensities or randomized data
+- do not let DBE replay become the default proof target for the repo; treat it as a bridge task
 
 Current default v1 policy suite:
 
@@ -252,7 +264,7 @@ Current default v1 policy suite:
 - Keep implementation simple, inspectable, and reproducible.
 - Make grounded assumptions, document them briefly, and keep moving.
 - Do not expand into BKT, DKT, RNNs, transformers, or a live personalised learning system unless the user explicitly changes scope.
-- If the user explicitly shifts toward question selection, keep it to offline replay and policy comparison using the fitted learner models rather than inventing a full intervention framework.
+- If the user explicitly shifts toward question selection, keep DBE work to offline replay or design-spec work unless the user explicitly wants a decision-native redesign.
 - Preserve the distinction between:
   - **Phase 1:** public heterogeneity discovery
   - **Phase 2A:** conditional local structural replication

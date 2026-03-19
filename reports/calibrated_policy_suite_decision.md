@@ -131,5 +131,3 @@ Current operational policy stack:
 Reference outputs:
 
 - [policy_suite_summary.json](D:/model1_baseline_agent_bundle/outputs/phase1_adaptive_policy/calibrated_policy_suite_qmatrix_rpfa/policy_suite_summary.json)
-- [policy_suite_comparison.csv](D:/model1_baseline_agent_bundle/outputs/phase1_adaptive_policy/calibrated_policy_suite_qmatrix_rpfa/policy_suite_comparison.csv)
-- [policy_suite_rows.csv](D:/model1_baseline_agent_bundle/outputs/phase1_adaptive_policy/calibrated_policy_suite_qmatrix_rpfa/policy_suite_rows.csv)

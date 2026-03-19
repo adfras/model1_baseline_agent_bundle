@@ -1,23 +1,12 @@
 # Phase 1 Selection Memo
 
-This memo is the current canonical selection note for the public DBE work.
+This memo is the canonical selection note for the public DBE work.
 
-It separates two decisions that had become tangled:
+It now separates three decisions cleanly:
 
 1. **scientific heterogeneity selection**
-2. **operational model selection for offline question targeting**
-
-## What Phase 1 now answers
-
-Phase 1 still asks:
-
-1. Do learners differ in baseline level?
-2. Do learners also differ in growth rate?
-3. Do learners also differ in stability around that growth?
-
-But with no local dataset currently available, Phase 1 is also now being used to answer:
-
-4. Which supported learner model is the best current base for offline next-question policies?
+2. **learner-state reporting selection**
+3. **frozen replay-baseline selection**
 
 ## Scientific selection: heterogeneity ladder
 
@@ -29,11 +18,11 @@ On the full-data explicit Q-matrix ladder:
 
 Interpretation:
 
-- Model 2 survives the hurdle against Model 1
-- Model 3 survives the hurdle against Model 2
-- the full-data public evidence supports baseline, growth, and stability heterogeneity
+- Model 2 survives over Model 1
+- Model 3 survives over Model 2
+- the public DBE data support baseline, growth, and stability heterogeneity
 
-So the current **scientific** reading is:
+So the current scientific reading is:
 
 - **Model 1**: hurdle benchmark only
 - **Model 2**: supported growth model
@@ -43,383 +32,74 @@ Reference:
 
 - [phase1_multikc_qmatrix_comparison.md](D:/model1_baseline_agent_bundle/reports/phase1_multikc_qmatrix_comparison.md)
 
-## Operational selection: best-yield predictive model
+## Learner-state reporting selection
 
-The highest-yield improvement tried so far was not more latent-state tuning. It was better KC-history representation.
+The repo now treats learner-state estimation as a direct Phase 1 output rather than only an intermediate step toward policy replay.
 
-On the explicit Q-matrix PFA / R-PFA branch family:
+Source of truth:
 
-- selected R-PFA alpha: `0.9`
-- direct policy-facing comparison against `0.8` also kept `0.9`
-- R-PFA Model 2:
-  - log loss `0.541470`
-  - Brier `0.183001`
-  - AUC `0.764493`
-  - calibration slope `0.957899`
-- R-PFA Model 3:
-  - log loss `0.541660`
-  - Brier `0.183103`
-  - AUC `0.763996`
-  - calibration slope `0.972057`
+- scientific explicit Q-matrix posterior draws only
+- no refitting
+- 94% HDIs
+
+Current exported deliverables:
+
+- [model2_learner_profiles.csv](D:/model1_baseline_agent_bundle/outputs/phase1_multikc_qmatrix_profiles/model2_learner_profiles.csv)
+- [model3_learner_profiles.csv](D:/model1_baseline_agent_bundle/outputs/phase1_multikc_qmatrix_profiles/model3_learner_profiles.csv)
+- [model3_latent_state_profiles.csv](D:/model1_baseline_agent_bundle/outputs/phase1_multikc_qmatrix_profiles/model3_latent_state_profiles.csv)
+- [phase1_qmatrix_learner_state_profiles.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_learner_state_profiles.md)
 
 Interpretation:
 
-- adding wins/fails per KC matters more than retuning the older opportunity-only structure
-- recency tuning now sits on top of that PFA baseline for the operational branch
-- the tie-broken operational alpha is `0.9`
-- the later policy-facing alpha comparison also kept `0.9`
-- Model 2 stays ahead of Model 3 on log loss, Brier, AUC, and accuracy
-- Model 3 still offers a richer uncertainty/stability story and a better calibration slope, but it is not the automatic operational winner
+- `baseline` = global intercept plus learner intercept on the logit scale
+- `growth` = learner-specific practice slope on the logit scale
+- `stability` = learner-specific latent state scale in Model 3
+- `latent_state_mean` by `state_bin` = transient deviation around each learner’s longer-run trajectory
 
-Reference:
+So the current reporting decision is:
 
-- [phase1_qmatrix_rpfa_tuning.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_tuning.md)
-- [phase1_qmatrix_rpfa_operational_selection.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_operational_selection.md)
-- [phase1_qmatrix_rpfa_policy_alpha_comparison.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_policy_alpha_comparison.md)
+- use the scientific explicit-Q ladder as the mainline DBE reporting branch
+- treat learner-state profile exports as the main public deliverable beyond aggregate model comparison
 
-## Calibration-layer decision
+## Frozen replay-baseline selection
 
-The repo also tested the user’s harder criterion:
+The replay work remains in the repo, but it is no longer the mainline claim.
 
-- if residual heterogeneity is supposed to matter for policy alignment
-- then the uncertainty side-channel must survive a rerun of the fixed new-learning policy suite
+Current frozen DBE replay baseline:
 
-That pass/fail test has now been run.
-
-Result:
-
-- the uncertainty side-channel gets a tiny `confidence_building` target-gap gain over the context-only calibrator:
-  - `0.005736` -> `0.005724`
-- but it fails the broader operational gate because:
-  - mean new-learning target gap gets worse:
-    - `0.005535` -> `0.005558`
-  - mean stability also gets worse:
-    - `0.003091` -> `0.003347`
-
-Stronger practical reading:
-
-- raw Model 2 still has the best mean new-learning target gap:
-  - `0.005427`
-- raw Model 2 also remains much more stable:
-  - `0.000850`
-
-So the operational decision is now plain:
-
-- keep **raw Model 2 probabilities** as the fixed-policy input
-- do **not** adopt the uncertainty calibration layer operationally
-- keep Model 3 only as:
-  - the richest scientific heterogeneity model
-  - an exploratory calibration / uncertainty branch
-
-Reference:
-
-- [uncertainty_calibration_layer.md](D:/model1_baseline_agent_bundle/reports/uncertainty_calibration_layer.md)
-- [calibrated_policy_suite_decision.md](D:/model1_baseline_agent_bundle/reports/calibrated_policy_suite_decision.md)
-
-## Residual-heterogeneity restart decision
-
-The repo then ran the stricter restart branch:
-
-- same frozen scorer:
-  - **R-PFA Model 2**
-  - `alpha = 0.9`
-  - `24`-hour review threshold
-- KC-constrained unseen candidate slate
-- local residual / friction / self-report features built from prior attempts only
-- policy-specific logistic calibrators
-- Model 3 used only as one extra uncertainty feature
-
-This was the harder operational question:
-
-**Can local residual alignment plus Model 3 uncertainty beat raw Model 2 on the actual fixed new-learning decision problem?**
-
-Result:
-
-- the earlier version of this branch was invalid because the supposed policy-specific calibrators reused effectively identical actual-next rows across policies
-- the corrected rerun fixes that and still **fails**
-- the branch still **fails**
-- `confidence_building` target gap gets worse:
-  - `0.007667` -> `0.007829`
-- pooled mean target gap also gets worse:
-  - `0.010476` -> `0.011166`
-- pooled policy advantage gets much worse:
-  - `0.190638` -> `0.133794`
-- pooled stability worsens badly:
-  - `0.004233` -> `0.009808`
-
-The ablation also shows that adding Model 3 on top of the local residual features changes almost nothing operationally:
-
-- mean target-gap delta vs residual-only: about `+0.000130`
-- mean policy-advantage delta vs residual-only: about `+0.000443`
-- mean stability delta vs residual-only: about `+0.000193`
-
-So the stronger operational conclusion is now:
-
-- raw Model 2 remains the fixed-policy input
-- local residual alignment is not enough to displace it on DBE
-- Model 3 still does **not** earn an operational role beyond exploration
-
-Reference:
-
-- [local_uncertainty_policy_suite_decision.md](D:/model1_baseline_agent_bundle/reports/local_uncertainty_policy_suite_decision.md)
-
-## First policy selection result
-
-The offline adaptive replay work is no longer limited to one simple rule.
-
-It now supports a small modular suite:
-
-- balanced challenge
-- harder challenge
-- confidence-building
-- failure-aware remediation
-- spacing-aware review
-
-Current reading:
-
-- `balanced_challenge`:
-  - Model 3 has a tiny overall target-gap edge
-  - Model 2 has slightly better policy advantage and clearly better stability
-- `confidence_building`:
-  - Model 2 is better on target gap, policy advantage, and stability
-- `failure_aware_remediation`:
-  - Model 2 is slightly better on target gap, band-hit rate, policy advantage, and stability
-- `harder_challenge`:
-  - Model 3 has a tiny policy-advantage edge
-  - Model 2 is still better on target gap and stability
-- `spacing_aware_review`:
-  - Model 3 has a tiny band-hit edge
-  - Model 2 is better on target gap, policy advantage, and stability
-
-Interpretation:
-
-- the key decision is now policy-facing rather than purely predictive
-- Model 2 remains the default policy model unless Model 3 clearly improves the policy metrics
-- Model 3 does not currently clear that bar
-- the replay remains an offline target-control / policy-behavior test, not a causal learning-gain estimate
-- the fixed shared suite above used the common `48`-hour review threshold
-- later spacing-only tuning on the operational Model 2 branch selected `24` hours for `spacing_aware_review`
-
-Reference:
-
-- [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)
-- [spacing_policy_due_review_grid.md](D:/model1_baseline_agent_bundle/reports/spacing_policy_due_review_grid.md)
-- [policy_subgroup_diagnostics.md](D:/model1_baseline_agent_bundle/reports/policy_subgroup_diagnostics.md)
-- [hybrid_uncertainty_router_v2.md](D:/model1_baseline_agent_bundle/reports/hybrid_uncertainty_router_v2.md)
-
-### Policy-heterogeneity note
-
-The current operational suite has now also been compared by subgroup.
-
-Current reading:
-
-- there is no single universal best fixed policy
-- `confidence_building` has the smallest target gap overall, on early steps, and on multi-KC items
-- `balanced_challenge` has the smallest target gap later in the sequence, on single-KC items, and in the higher-friction and lower-proficiency contexts
-- `harder_challenge` most often wins on policy advantage
-- `failure_aware_remediation` and `spacing_aware_review` still behave more like service modes than global winners
-
-So the policy implication is:
-
-- keep the fixed Model 2 suite as the current baseline
-- stop looking for one universal winner
-- use the subgroup diagnostics as a routing diagnostic, not as proof that a new router will help
-
-A first conservative router v3 attempt was then tried and rejected.
-
-Why it was rejected:
-
-- target gap `1-10`: `0.01633`
-- policy advantage `1-10`: `0.17335`
-- stability: `0.02701`
-
-That was worse than:
-
-- hybrid v1
-- tuned hybrid v2
-- fixed `balanced_challenge`
-
-So the current repo position is:
-
-- fixed Model 2 policies remain the operational default
-- hybrid v1 remains the more stable hybrid baseline
-- tuned hybrid v2 remains the current exploratory routing branch
-- conservative router v3 is documented as a rejected attempt, not a carry-forward branch
-
-Reference:
-
-- [policy_subgroup_diagnostics.md](D:/model1_baseline_agent_bundle/reports/policy_subgroup_diagnostics.md)
-- [conservative_router_v3_attempt.md](D:/model1_baseline_agent_bundle/reports/conservative_router_v3_attempt.md)
-
-### Simple two-mode router note
-
-A later simple two-mode router was then tried with the scorer frozen at:
-
-- **R-PFA Model 2**
+- scorer: raw explicit Q-matrix **R-PFA Model 2**
 - `alpha = 0.9`
-- `24`-hour `spacing_aware_review`
+- review threshold: `24` hours
+- default new-learning policy: fixed `confidence_building`
+- Model 3: scientific / exploratory only
 
-Router rule:
+Why this remains frozen:
 
-- if review is due -> `spacing_aware_review`
-- else if early / low-proficiency / high-failure / high-friction -> `confidence_building`
-- else -> `balanced_challenge`
-
-Best threshold set:
-
-- early-step cutoff `5`
-- low-proficiency threshold at the `30%` quantile (`0.71797`)
-- recent-failure threshold at the `75%` quantile (`45.24461`)
-- `current` friction rule
-
-Result on the new-learning subset:
-
-- router target gap `1-10`: `0.002871`
-- fixed `confidence_building`: `0.002918`
-- delta: `-0.000047`
-
-But the router lost on the operational tie-break metrics:
-
-- policy advantage delta vs fixed `confidence_building`: `-0.004489`
-- stability delta vs fixed `confidence_building`: `+0.009543`
-
-So the practical decision is:
-
-- keep `spacing_aware_review` as a separate review service mode
-- keep fixed `confidence_building` as the default new-learning choice
-- keep `balanced_challenge` as the safer comparator / later-step reference
-- keep `harder_challenge` only as a benchmark
-- keep `failure_aware_remediation` out of the default path
-- do **not** promote the simple router as the new default
+- raw Model 2 remains the best current replay input
+- the uncertainty calibration layer did not survive the fixed-policy rerun
+- the corrected KC-constrained local-residual restart also failed the operational gate
+- a later direct heterogeneity utility branch also failed to beat the frozen spacing-or-confidence baseline
+- the later router branches did not justify replacing the fixed baseline
 
 Reference:
 
-- [simple_two_mode_router_decision_memo.md](D:/model1_baseline_agent_bundle/reports/simple_two_mode_router_decision_memo.md)
-
-## Current decision
-
-Keep the decisions separate and explicit.
-
-### Scientific conclusion
-
-On the full-data explicit-Q ladder:
-
-- baseline heterogeneity is present
-- growth heterogeneity is present
-- stability heterogeneity is also present
-
-So the richest supported public heterogeneity model is still **Model 3**.
-
-### Operational conclusion
-
-For current predictive yield and offline question-selection work:
-
-- **explicit Q-matrix R-PFA Model 2** is the mainline model
-- **explicit Q-matrix R-PFA Model 3** is the richer challenger
-- keep `alpha = 0.9`
-- use `24` hours as the current spacing-review threshold on the operational Model 2 branch
-
-That is the current repo focus.
-
-### Calibration-alignment note
-
-Residual heterogeneity is still important for the policy question because the policy layer acts on predicted probabilities, not only on rank ordering.
-
-So the repo now distinguishes between:
-
-- **mean scoring**
-- **policy-context calibration / uncertainty**
-
-A direct logged actual-next calibration check has now been added on the current policy contexts.
-
-Current reading:
-
-- this is the right question to ask of Model 3
-- but the current evidence still does **not** show a policy-context calibration advantage for Model 3
-- across all logged rows, Model 2 is better on Brier, log loss, and calibration slope
-- the same pattern mostly holds in the early-step, confidence-trigger, balanced-default, and high-friction contexts
-- review-due and high-failure contexts only show mixed, very small differences rather than a robust Model 3 advantage
-
-So the operational split remains:
-
-- **Model 2** = current scorer
-- **Model 3** = exploratory calibration / uncertainty challenger
-
-Reference:
-
-- [policy_alignment_calibration.md](D:/model1_baseline_agent_bundle/reports/policy_alignment_calibration.md)
-
-### Uncertainty side-channel result
-
-The next calibration-layer pass asked the more useful question:
-
-- can Model 3 improve calibration when used as a side-channel on top of Model 2?
-
-Current answer:
-
-- yes
-- a **banded Model 3 uncertainty calibrator** beats the strongest non-uncertainty baseline on held-out students
-
-Main held-out evaluation result:
-
-- context-only calibrated Model 2 log loss: `0.516384`
-- Model 2 + banded Model 3 uncertainty log loss: `0.516209`
-- context-only calibrated Model 2 Brier: `0.172574`
-- Model 2 + banded Model 3 uncertainty Brier: `0.172524`
-
-Interpretation:
-
-- this is the first actual **calibration win** from residual heterogeneity in the repo
-- the right operational split is now:
-  - **Model 2** for mean scoring
-  - **Model 3 uncertainty** for calibration alignment
-- this is still not yet a full policy-suite rerun with recalibrated probabilities, so the current fixed-policy operational baseline remains unchanged for now
-
-Reference:
-
-- [uncertainty_calibration_layer.md](D:/model1_baseline_agent_bundle/reports/uncertainty_calibration_layer.md)
+- [phase1_qmatrix_rpfa_operational_selection.md](D:/model1_baseline_agent_bundle/reports/phase1_qmatrix_rpfa_operational_selection.md)
+- [calibrated_policy_suite_decision.md](D:/model1_baseline_agent_bundle/reports/calibrated_policy_suite_decision.md)
 - [local_uncertainty_policy_suite_decision.md](D:/model1_baseline_agent_bundle/reports/local_uncertainty_policy_suite_decision.md)
+- [direct_heterogeneity_policy_decision.md](D:/model1_baseline_agent_bundle/reports/direct_heterogeneity_policy_decision.md)
+- [current_objective_and_failure_mode.md](D:/model1_baseline_agent_bundle/reports/current_objective_and_failure_mode.md)
 
-### Uncertainty-routing note
+## Current DBE policy conclusion
 
-A first hybrid router using:
+The repo now treats offline policy replay as a **bridge / negative-result track**.
 
-- Model 2 for the mean prediction
-- Model 3 for a step-level uncertainty signal
+That means:
 
-does help route more steps into remediation, review, and diagnostic modes, but it does **not** beat the fixed-policy suite on pure target-gap control. So it remains a prototype rather than a replacement for the current operational default.
+- DBE policy replay remains useful for documenting what did and did not survive operationally
+- DBE policy replay does **not** currently justify an adaptive-question-selection claim
+- future next-item work should be framed as a **decision-native** redesign question rather than another bolt-on replay branch
 
-A second-generation router with lagged observable proxies and a `24`-hour review threshold is now also in the repo.
+Reference:
 
-Current reading:
-
-- raw v2 thresholds over-routed and degraded target-gap control
-- tuned v2 improved target gap, policy advantage, and recent-failure coverage relative to v1
-- tuned v2 still remained materially less stable than v1 and much less target-precise than the fixed-policy suite
-
-So the current position is:
-
-- fixed Model 2 policies remain the operational default
-- fixed `confidence_building` is now the default new-learning choice under that frozen scorer
-- hybrid v1 remains the more stable hybrid baseline
-- tuned hybrid v2 is the current exploratory routing branch for later gating work
-- the first conservative router v3 attempt is documented only as a rejected follow-up, not an active branch
-
-## Remaining caveats
-
-- the restrictive single-KC sensitivity branch still collapses to Model 1
-- the main robustness issue is how much effect sizes move under alternative KC handling
-- the adaptive-policy replay so far is narrow:
-  - target-difficulty control only
-  - offline replay only
-  - no causal learning-gain claim yet
-
-## Practical reading
-
-If the question is:
-
-- **What is the richest public heterogeneity model currently supported?**
-  - **Model 3**
-
-- **What is the best current operational model for offline next-question targeting?**
-  - **explicit Q-matrix R-PFA Model 2**
+- [manylabs_dbe_alignment_note.md](D:/model1_baseline_agent_bundle/reports/manylabs_dbe_alignment_note.md)
+- [decision_native_successor_spec.md](D:/model1_baseline_agent_bundle/reports/decision_native_successor_spec.md)

@@ -1,8 +1,0 @@
-{
-  "base_trials_path": "data/processed/model1_track_b/learner_trials.csv",
-  "processed_trials_path": "data/processed/model1_track_b_item_stress/learner_trials.csv",
-  "heldout_items_path": "data/processed/model1_track_b_item_stress/heldout_items.csv",
-  "summary_path": "data/processed/model1_track_b_item_stress/item_stress_summary.json",
-  "heldout_item_fraction": 0.1,
-  "hash_salt": "model1-track-b-item-stress"
-}

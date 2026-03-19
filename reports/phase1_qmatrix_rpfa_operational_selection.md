@@ -84,7 +84,6 @@ Important review-mode note:
 
 Reference:
 
-- [adaptive_policy_suite_comparison.md](D:/model1_baseline_agent_bundle/reports/adaptive_policy_suite_comparison.md)
 - [spacing_policy_due_review_grid.md](D:/model1_baseline_agent_bundle/reports/spacing_policy_due_review_grid.md)
 
 ## Operational decision
