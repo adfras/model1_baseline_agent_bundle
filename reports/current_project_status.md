@@ -16,9 +16,12 @@ With no local dataset currently available, the active work is now:
 3. keep DBE replay results as documented bridge evidence, not as the repo’s central success criterion
 4. define the requirements for a future decision-native system
 
+The repo does not currently retain a within-DBE chained-prior transfer result as an active deliverable. Transfer is still treated as a later question for a real local dataset.
+
 Plain-language framing of the current applied objective and the current DBE failure mode:
 
 - [current_objective_and_failure_mode.md](D:/model1_baseline_agent_bundle/reports/current_objective_and_failure_mode.md)
+- [problem_statement_and_failure_diagnosis.md](D:/model1_baseline_agent_bundle/reports/problem_statement_and_failure_diagnosis.md)
 
 ## Current public-data state
 
@@ -143,10 +146,26 @@ Why it stays frozen:
 - the corrected KC-constrained local-residual restart also failed the operational gate
 - a later direct heterogeneity utility branch, using Model 3 learner-state signals inside the action choice itself, also failed against the frozen spacing-or-confidence baseline
 - the later router branches did not beat the fixed baseline cleanly enough
+- the current repair therefore moves heterogeneity to **mode choice** and keeps exact-item ranking frozen under `R-PFA Model 2`
 
 So the current DBE policy conclusion is:
 
 - DBE still does **not** support an operational adaptive-question-selection win
+
+Latest forced-mode-family result:
+
+- the repaired mode controller now really does force different item families by mode
+- controller composite reward `1-10`: `0.129584`
+- operational freeze composite reward `1-10`: `0.119723`
+- controller same-KC success `1-10`: `0.670675`
+- operational freeze same-KC success `1-10`: `0.714760`
+- fixed `balanced_challenge` composite reward `1-10`: `0.379460`
+
+Interpretation:
+
+- the earlier failure was not only “the modes looked too similar”
+- even after forcing the modes to select different kinds of items, DBE replay still does not produce a convincing policy win from heterogeneity
+- the remaining bottleneck is now the replay setting itself plus controller/reward alignment, not a missing model
 
 Reference:
 
@@ -155,6 +174,7 @@ Reference:
 - [local_uncertainty_policy_suite_decision.md](D:/model1_baseline_agent_bundle/reports/local_uncertainty_policy_suite_decision.md)
 - [direct_heterogeneity_policy_decision.md](D:/model1_baseline_agent_bundle/reports/direct_heterogeneity_policy_decision.md)
 - [current_objective_and_failure_mode.md](D:/model1_baseline_agent_bundle/reports/current_objective_and_failure_mode.md)
+- [problem_statement_and_failure_diagnosis.md](D:/model1_baseline_agent_bundle/reports/problem_statement_and_failure_diagnosis.md)
 
 ## ManyLabs alignment
 
@@ -174,8 +194,15 @@ That is why the DBE mainline is now:
 - learner-state estimation
 - decision-native successor design
 
+The current bridge repair for replay is:
+
+- two-stage mode control
+- diagnostic routing for uncertainty and KC-conflict
+- short-horizon follow-up reward instead of next-item target-gap as the primary bridge metric
+
 Reference:
 
+- [mode_policy_controller_design.md](D:/model1_baseline_agent_bundle/reports/mode_policy_controller_design.md)
 - [manylabs_dbe_alignment_note.md](D:/model1_baseline_agent_bundle/reports/manylabs_dbe_alignment_note.md)
 - [decision_native_successor_spec.md](D:/model1_baseline_agent_bundle/reports/decision_native_successor_spec.md)
 
@@ -201,3 +228,24 @@ Until local data is available, the practical mainline is:
 2. keep exporting learner-state summaries from that ladder
 3. keep the frozen DBE replay baseline documented, but not central
 4. treat future next-item work as a design-spec problem unless stronger decision-native data become available
+
+## Experimental SSD/APLS continuous branch
+
+The repo also now contains an experimental SSD/APLS branch that is separate from the DBE binary mainline.
+
+That branch:
+
+- reuses the SSD/APLS support-request table
+- derives continuous elapsed-time targets over `1d`, `7d`, and `28d`
+- fits matched baseline and heteroskedastic Gaussian location-scale models in Stan
+- keeps student progress random slopes and student-specific residual volatility in the scientific reference model
+
+The purpose of that branch is narrower than the DBE mainline:
+
+- map learner differences in post-support performance, independence, and volatility
+
+Core docs:
+
+- [ssd_apls_continuous_location_scale_branch.md](D:/model1_baseline_agent_bundle/reports/ssd_apls_continuous_location_scale_branch.md)
+- [ssd_apls_continuous_target_dictionary.md](D:/model1_baseline_agent_bundle/reports/ssd_apls_continuous_target_dictionary.md)
+- [ssd_apls_continuous_runbook.md](D:/model1_baseline_agent_bundle/reports/ssd_apls_continuous_runbook.md)
